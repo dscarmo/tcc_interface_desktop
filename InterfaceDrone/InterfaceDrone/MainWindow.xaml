@@ -5,8 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InterfaceDrone"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="MainWindow" Height="720" Width="1280" Loaded="windowLoaded">
     <Grid>
-        
+        <Label x:Name="title" Content="Interface para Controle - Phantom" HorizontalAlignment="Left" Margin="41,29,0,0" VerticalAlignment="Top" FontSize="36"/>
+        <Image x:Name="cameraView" HorizontalAlignment="Left" Height="360" Margin="41,129,0,0" VerticalAlignment="Top" Width="640" Source="/images/logo-ivision.png"/>
+        <Button x:Name="upButton" Content="Up" HorizontalAlignment="Left" Margin="856,129,0,0" VerticalAlignment="Top" Width="197" Height="30" FontSize="20"/>
+        <Button x:Name="rollLeftButton" Content="Roll Esquerda" HorizontalAlignment="Left" Margin="856,171,0,0" VerticalAlignment="Top" Width="197" Height="30" FontSize="20"/>
+        <Button x:Name="rollRightButton" Content="Roll Direita" HorizontalAlignment="Left" Margin="1058,171,0,0" VerticalAlignment="Top" Width="198" Height="30" FontSize="20"/>
+        <Button x:Name="downButton" Content="Down" HorizontalAlignment="Left" Margin="1058,129,0,0" VerticalAlignment="Top" Width="198" Height="30" FontSize="20"/>
+        <Button x:Name="pitchLeftButton" Content="Pitch Esquerda" HorizontalAlignment="Left" Margin="856,206,0,0" VerticalAlignment="Top" Width="197" Height="30" FontSize="20"/>
+        <Button x:Name="pitchRightButton" Content="Pitch Direita" HorizontalAlignment="Left" Margin="1058,206,0,0" VerticalAlignment="Top" Width="197" Height="30" FontSize="20"/>
+        <Label x:Name="label" Content="Botões de Teste" HorizontalAlignment="Left" Margin="959,85,0,0" VerticalAlignment="Top" Width="207" FontSize="22"/>
+        <Button x:Name="rotateLeftButton" Content="Rotate Esquerda" HorizontalAlignment="Left" Margin="856,247,0,0" VerticalAlignment="Top" Width="197" Height="30" FontSize="20"/>
+        <Button x:Name="rotateRightButton" Content="Rotate Direita" HorizontalAlignment="Left" Margin="1059,247,0,0" VerticalAlignment="Top" Width="197" Height="30" FontSize="20"/>
+        <Label x:Name="versionLabel" Content="Alpha 0.1 - Diedre" HorizontalAlignment="Left" Margin="1153,653,0,0" VerticalAlignment="Top"/>
+        <Label x:Name="cameraViewLabel" Content="Visão da Câmera" HorizontalAlignment="Left" Margin="41,103,0,0" VerticalAlignment="Top"/>
+
+
+
     </Grid>
 </Window>

@@ -24,5 +24,10 @@ namespace InterfaceDrone
         {
             InitializeComponent();
         }
+
+        private void windowLoaded(object sender, RoutedEventArgs e)
+        {
+            //MessageBox.Show("Bem-vindo ao sistema de controle de drone do iVision.");
+        }
     }
 }
