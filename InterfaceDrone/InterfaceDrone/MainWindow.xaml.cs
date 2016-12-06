@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -28,6 +29,13 @@ namespace InterfaceDrone
         private void windowLoaded(object sender, RoutedEventArgs e)
         {
             //MessageBox.Show("Bem-vindo ao sistema de controle de drone do iVision.");
+            UDP udp = new UDP();
+
+            Thread server = new Thread(udp.server);
+            server.Start();
+
+            Thread client = new Thread(udp.client);
+            client.Start();
         }
     }
 }
