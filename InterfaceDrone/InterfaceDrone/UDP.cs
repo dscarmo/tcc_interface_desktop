@@ -15,7 +15,6 @@ namespace InterfaceDrone
         UdpClient udpServer;
         IPEndPoint serverEndIP;
         IPEndPoint clientEndIP;
-        IPAddress local_ip = IPAddress.Loopback;
 
         public UDP()
         {
@@ -37,7 +36,9 @@ namespace InterfaceDrone
         {
 
             try
-            { 
+            {
+                Console.WriteLine("Enviando: " + str);
+
                 // Sends a message to the host to which you have connected.
                 Byte[] sendBytes = Encoding.ASCII.GetBytes(str);
 
@@ -48,14 +49,10 @@ namespace InterfaceDrone
                 string returnData = Encoding.ASCII.GetString(receiveBytes);
 
                 // Uses the IPEndPoint object to determine which of these two hosts responded.
-                Console.WriteLine("This is the message you received " +
+                Console.WriteLine("This is the response you received " +
                                              returnData.ToString());
-                Console.WriteLine("This message was sent from " +
-                                            serverEndIP.Address.ToString() +
-                                            " on their port number " +
-                                            serverEndIP.Port.ToString());
 
-                udpClient.Close();
+
             }  
             catch (Exception e )
             {
@@ -76,19 +73,23 @@ namespace InterfaceDrone
 
                 data = udpServer.Receive(ref serverEndIP);
 
-                Console.WriteLine("Message received from {0}:", clientEndIP.ToString());
+                Console.WriteLine("Message received from {0}:", serverEndIP.ToString());
                 Console.WriteLine(Encoding.ASCII.GetString(data, 0, data.Length));
 
                 string welcome = "Welcome to my test server";
                 data = Encoding.ASCII.GetBytes(welcome);
-                udpServer.Send(data, data.Length, clientEndIP);
+                udpServer.Send(data, data.Length, serverEndIP);
 
                 while (true)
                 {
                     data = udpServer.Receive(ref serverEndIP);
+                    string data_string = Encoding.ASCII.GetString(data, 0, data.Length);
 
-                    Console.WriteLine(Encoding.ASCII.GetString(data, 0, data.Length));
-                    udpServer.Send(data, data.Length, clientEndIP);
+                    string resposta = "recebi: " + data_string;
+                    byte[] resposta_data = Encoding.ASCII.GetBytes(resposta);
+
+                    Console.WriteLine("Enviando devolta pro cliente: " + Encoding.ASCII.GetString(resposta_data, 0, resposta_data.Length));
+                    udpServer.Send(resposta_data, resposta.Length, serverEndIP);
                 }
 
             }
@@ -105,12 +106,13 @@ namespace InterfaceDrone
             int mensagem = 1;
 
             Thread.Sleep(1000);
-            while(mensagem < 10)
+            while(mensagem < 9)
             {
                 sendMsg(mensagem++.ToString());
-                Thread.Sleep(500);
+                Thread.Sleep(1000);
             }
-            
+
+            udpClient.Close();
         }
     }
     
