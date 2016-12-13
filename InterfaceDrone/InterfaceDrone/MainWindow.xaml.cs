@@ -21,21 +21,53 @@ namespace InterfaceDrone
     /// </summary>
     public partial class MainWindow : Window
     {
+
+        internal static MainWindow main;
+        internal string AndroidDisplay
+        {
+            get
+            {
+                return android.Text;
+            }
+
+            set
+            {
+                Dispatcher.Invoke(new Action(() => {
+                                                        android.Text = value;
+                                                   }
+                                             )
+                                 );
+            }
+        }
+        public static UDP udp = new UDP();
+
         public MainWindow()
         {
             InitializeComponent();
+            main = this;
         }
 
         private void windowLoaded(object sender, RoutedEventArgs e)
         {
-            //MessageBox.Show("Bem-vindo ao sistema de controle de drone do iVision.");
-            UDP udp = new UDP();
+            //MessageBox.Show("Bem-vindo ao sistema de controle de drone do iVision. Inicie a aplicação ponte android.");
+            
 
             Thread server = new Thread(udp.server);
             server.Start();
+ 
+        }
 
+        private void runApplication(object sender, RoutedEventArgs e)
+        {
             Thread client = new Thread(udp.client);
             client.Start();
+
+            //Criar thread pra fazer update do android display igual como fazia nos angulos no kinect
+            while (true)
+            {
+                Console.WriteLine(AndroidDisplay);
+                Thread.Sleep(500);
+            }
         }
     }
 }

@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace InterfaceDrone
 {
-    class UDP
+    public class UDP
     {
         UdpClient udpClient;
         UdpClient udpServer;
@@ -37,7 +34,7 @@ namespace InterfaceDrone
 
             try
             {
-                Console.WriteLine("Enviando: " + str);
+                Console.WriteLine("Cliente: Enviando: " + str);
 
                 // Sends a message to the host to which you have connected.
                 Byte[] sendBytes = Encoding.ASCII.GetBytes(str);
@@ -49,7 +46,7 @@ namespace InterfaceDrone
                 string returnData = Encoding.ASCII.GetString(receiveBytes);
 
                 // Uses the IPEndPoint object to determine which of these two hosts responded.
-                Console.WriteLine("This is the response you received " +
+                Console.WriteLine("Cliente: This is the response you received " +
                                              returnData.ToString());
 
 
@@ -66,14 +63,14 @@ namespace InterfaceDrone
             try
             {
                 byte[] data = new byte[1024];
-                
+                string display;
 
-                Console.WriteLine("Waiting for a client...");
+                Console.WriteLine("Server: Waiting for a client...");
           
 
                 data = udpServer.Receive(ref serverEndIP);
 
-                Console.WriteLine("Message received from {0}:", serverEndIP.ToString());
+                Console.WriteLine("Server: Message received from {0}:", serverEndIP.ToString());
                 Console.WriteLine(Encoding.ASCII.GetString(data, 0, data.Length));
 
                 string welcome = "Welcome to my test server";
@@ -88,8 +85,11 @@ namespace InterfaceDrone
                     string resposta = "recebi: " + data_string;
                     byte[] resposta_data = Encoding.ASCII.GetBytes(resposta);
 
-                    Console.WriteLine("Enviando devolta pro cliente: " + Encoding.ASCII.GetString(resposta_data, 0, resposta_data.Length));
+                    Console.WriteLine("Server: Enviando devolta pro cliente: " + Encoding.ASCII.GetString(resposta_data, 0, resposta_data.Length));
                     udpServer.Send(resposta_data, resposta.Length, serverEndIP);
+
+                    //display = MainWindow.main.AndroidDisplay;
+                    MainWindow.main.AndroidDisplay = data_string;
                 }
 
             }
@@ -102,7 +102,7 @@ namespace InterfaceDrone
 
         public void client()
         {
-            Console.WriteLine("Cliente inicializado, mandando mensagens de teste.");
+            Console.WriteLine("Cliente: Cliente inicializado, mandando mensagens de teste.");
             int mensagem = 1;
 
             Thread.Sleep(1000);
