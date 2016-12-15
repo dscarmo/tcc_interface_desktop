@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using System.Windows;
 
 namespace InterfaceDrone
 {
@@ -13,23 +14,30 @@ namespace InterfaceDrone
         IPEndPoint serverEndIP;
         IPEndPoint clientEndIP;
 
-        const int CLIENT_PORT = 11000;
-        const int SERVER_PORT = 11001;
+        public string default_ip = "192.168.43.1";
+        public static int SERVER_PORT = 11001;
+
+        static int CLIENT_PORT = 11000;
 
         public UDP()
         {
             
-
+            
 
             serverEndIP = new IPEndPoint(IPAddress.Loopback, CLIENT_PORT);
             //clientEndIP = new IPEndPoint(IPAddress.Loopback, SERVER_PORT);
 
             //clientEndIP = new IPEndPoint(IPAddress.Parse("192.168.26.2"), SERVER_PORT);
 
-            clientEndIP = new IPEndPoint(IPAddress.Parse("192.168.26.2"), SERVER_PORT);
+            //clientEndIP = new IPEndPoint(IPAddress.Parse("192.168.26.2"), SERVER_PORT);
+            clientEndIP = new IPEndPoint(IPAddress.Parse(default_ip), SERVER_PORT);
+
 
             udpClient = new UdpClient(CLIENT_PORT);
             udpServer = new UdpClient(SERVER_PORT);
+
+            udpClient.Client.SendTimeout = 1000;
+            udpClient.Client.ReceiveTimeout = 1000;
 
         }
 
@@ -57,7 +65,8 @@ namespace InterfaceDrone
             }  
             catch (Exception e )
             {
-                  Console.WriteLine(e.ToString());
+                Console.WriteLine(e.ToString());
+                AutoClosingMessageBox.Show(e.Message, "Erro ao Enviar Comando", 3000);
             }
 
         }
@@ -127,8 +136,7 @@ namespace InterfaceDrone
 
         public void changeTargetIP(string ip, int port)
         {
-            if (!MainWindow.running)
-                clientEndIP = new IPEndPoint(IPAddress.Parse(ip), SERVER_PORT);
+            clientEndIP = new IPEndPoint(IPAddress.Parse(ip), port);
         }
 
         public void closeSockets()
