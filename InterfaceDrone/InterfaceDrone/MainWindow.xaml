@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:InterfaceDrone"
         mc:Ignorable="d"
-        Title="MainWindow" Height="720" Width="1280" Loaded="windowLoaded">
+        Title="MainWindow" Height="720" Width="1280" Loaded="windowLoaded" Closing="cleanUp">
     <Grid>
         <Label x:Name="title" Content="Interface para Controle - Phantom" HorizontalAlignment="Left" Margin="41,29,0,0" VerticalAlignment="Top" FontSize="36"/>
         <Image x:Name="cameraView" HorizontalAlignment="Left" Height="360" Margin="41,129,0,0" VerticalAlignment="Top" Width="640" Source="logo-ivision.png"/>
@@ -24,6 +24,10 @@
         <Label x:Name="android_label" Content="Recepção Android" HorizontalAlignment="Left" Margin="686,310,0,0" VerticalAlignment="Top" Width="111"/>
         <Image x:Name="planeGuidance" HorizontalAlignment="Left" Height="274" Margin="856,310,0,0" VerticalAlignment="Top" Width="399" Source="rollpitchyaw.png"/>
         <Button x:Name="startButton" Content="Start" HorizontalAlignment="Left" Margin="686,569,0,0" VerticalAlignment="Top" Width="75" Click="runApplication"/>
+        <Button x:Name="takeOffButton" Content="Decolar" HorizontalAlignment="Left" Margin="730,159,0,0" VerticalAlignment="Top" Width="75"/>
+        <Button x:Name="landButton" Content="Aterrissar" HorizontalAlignment="Left" Margin="730,191,0,0" VerticalAlignment="Top" Width="75"/>
+        <TextBox x:Name="androidIP" HorizontalAlignment="Left" Height="23" Margin="686,608,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Text="Android IP"/>
+        <Button x:Name="changeIP" Content="Change" HorizontalAlignment="Left" Margin="811,611,0,0" VerticalAlignment="Top" Width="75" Click="changeIP_Click"/>
 
 
 

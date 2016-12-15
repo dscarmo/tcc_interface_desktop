@@ -13,23 +13,27 @@ namespace InterfaceDrone
         IPEndPoint serverEndIP;
         IPEndPoint clientEndIP;
 
+        const int CLIENT_PORT = 11000;
+        const int SERVER_PORT = 11001;
+
         public UDP()
         {
-            const int CLIENT_PORT = 11000;
-            const int SERVER_PORT = 11001;
             
 
 
             serverEndIP = new IPEndPoint(IPAddress.Loopback, CLIENT_PORT);
-            clientEndIP = new IPEndPoint(IPAddress.Loopback, SERVER_PORT);
+            //clientEndIP = new IPEndPoint(IPAddress.Loopback, SERVER_PORT);
 
+            //clientEndIP = new IPEndPoint(IPAddress.Parse("192.168.26.2"), SERVER_PORT);
+
+            clientEndIP = new IPEndPoint(IPAddress.Parse("192.168.26.2"), SERVER_PORT);
 
             udpClient = new UdpClient(CLIENT_PORT);
             udpServer = new UdpClient(SERVER_PORT);
 
         }
 
-        public void sendMsg(string str)
+        private void sendMsg(string str)
         {
 
             try
@@ -48,7 +52,7 @@ namespace InterfaceDrone
                 // Uses the IPEndPoint object to determine which of these two hosts responded.
                 Console.WriteLine("Cliente: This is the response you received " +
                                              returnData.ToString());
-
+                MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(returnData.ToString())));
 
             }  
             catch (Exception e )
@@ -58,12 +62,11 @@ namespace InterfaceDrone
 
         }
 
-        public void server()
+        public void androidServer()
         {
             try
             {
                 byte[] data = new byte[1024];
-                string display;
 
                 Console.WriteLine("Server: Waiting for a client...");
           
@@ -77,7 +80,7 @@ namespace InterfaceDrone
                 data = Encoding.ASCII.GetBytes(welcome);
                 udpServer.Send(data, data.Length, serverEndIP);
 
-                while (true)
+                while (MainWindow.server_running)
                 {
                     data = udpServer.Receive(ref serverEndIP);
                     string data_string = Encoding.ASCII.GetString(data, 0, data.Length);
@@ -87,9 +90,10 @@ namespace InterfaceDrone
 
                     Console.WriteLine("Server: Enviando devolta pro cliente: " + Encoding.ASCII.GetString(resposta_data, 0, resposta_data.Length));
                     udpServer.Send(resposta_data, resposta.Length, serverEndIP);
-
-                    //display = MainWindow.main.AndroidDisplay;
-                    MainWindow.main.AndroidDisplay = data_string;
+                    
+                    //Puts received stuff on frontend
+                    MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(data_string)));
+                 
                 }
 
             }
@@ -100,19 +104,37 @@ namespace InterfaceDrone
            
         }
 
-        public void client()
+        public void clientTest()
         {
             Console.WriteLine("Cliente: Cliente inicializado, mandando mensagens de teste.");
             int mensagem = 1;
 
             Thread.Sleep(1000);
-            while(mensagem < 9)
+
+            while(MainWindow.running)
             {
                 sendMsg(mensagem++.ToString());
-                Thread.Sleep(1000);
+                Thread.Sleep(500);
             }
+            
+        }
 
+        //Sends one of the string commands. 
+        public void sendCommand(string command)
+        {
+            sendMsg(command);
+        }
+
+        public void changeTargetIP(string ip, int port)
+        {
+            if (!MainWindow.running)
+                clientEndIP = new IPEndPoint(IPAddress.Parse(ip), SERVER_PORT);
+        }
+
+        public void closeSockets()
+        {
             udpClient.Close();
+            udpServer.Close();
         }
     }
     

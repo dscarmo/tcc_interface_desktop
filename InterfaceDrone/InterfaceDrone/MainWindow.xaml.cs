@@ -21,53 +21,70 @@ namespace InterfaceDrone
     /// </summary>
     public partial class MainWindow : Window
     {
+        static string up = "up";
+        static string down = "down";
 
-        internal static MainWindow main;
-        internal string AndroidDisplay
-        {
-            get
-            {
-                return android.Text;
-            }
+        static string rollEsquerda = "rollEsquerda";
+        static string rollDireita = "rollDireita";
 
-            set
-            {
-                Dispatcher.Invoke(new Action(() => {
-                                                        android.Text = value;
-                                                   }
-                                             )
-                                 );
-            }
-        }
+        static string pitchUp = "pitchUp";
+        static string pitchDown = "pitchDown";
+
+        static string yawEsquerda = "yawEsquerda";
+        static string yawDireita = "yawDireita";
+
+        internal static MainWindow frontEnd;
+        public static volatile bool running = false;
+        public static volatile bool server_running = false;
         public static UDP udp = new UDP();
+
+        Thread client = null;
+        Thread server = null;
 
         public MainWindow()
         {
             InitializeComponent();
-            main = this;
+            frontEnd = this;
         }
 
         private void windowLoaded(object sender, RoutedEventArgs e)
         {
             //MessageBox.Show("Bem-vindo ao sistema de controle de drone do iVision. Inicie a aplicação ponte android.");
-            
 
-            Thread server = new Thread(udp.server);
+            server_running = true;
+            server = new Thread(udp.androidServer);
             server.Start();
- 
+
         }
 
         private void runApplication(object sender, RoutedEventArgs e)
         {
-            Thread client = new Thread(udp.client);
-            client.Start();
-
-            //Criar thread pra fazer update do android display igual como fazia nos angulos no kinect
-            while (true)
+            if (!running)
             {
-                Console.WriteLine(AndroidDisplay);
-                Thread.Sleep(500);
+                running = true;
+                client = new Thread(udp.clientTest);
+                client.Start();
+                startButton.Content = "Stop";
             }
+            else
+            {
+                running = false;
+                startButton.Content = "Start";
+            }
+
+        }
+
+        //Event called when closing window
+        private void cleanUp(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            running = false;
+            server_running = false;
+            udp.closeSockets();
+        }
+
+        private void changeIP_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
