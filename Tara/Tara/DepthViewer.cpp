@@ -19,6 +19,7 @@
 **********************************************************************/
 #include "stdafx.h"
 #include "DepthViewer.h"
+#include "VideoCapture.hpp"
 
 //Local point to access the user selected value
 Point g_SelectedPoint(-1, -1);
@@ -31,6 +32,13 @@ int DepthViewer::Init()
 	cout << " Select a point to display the depth of the point!" << endl  << endl;
 
 	//MY STUFF HERE
+	string opt = "";
+	while (opt.compare("s") != 0 && opt.compare("n") != 0)
+	{
+		cout << "Deseja gravar a saida? (s, n)" << endl;
+		cin >> opt;
+	}
+	capture();
 
 	//Initialise the Camera
 	if(!_Disparity.InitCamera(true, true))
