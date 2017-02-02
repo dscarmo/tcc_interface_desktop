@@ -38,8 +38,5 @@ private:
 	Disparity _Disparity;	
 };
 
-
-int depth_main();
-
 //Call back function
 void DepthPointSelection(int MouseEvent, int x, int y, int flags, void* param) ;

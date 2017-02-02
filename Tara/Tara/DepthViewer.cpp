@@ -29,6 +29,9 @@ int DepthViewer::Init()
 	cout << endl << "		Depth Viewer Application " << endl  << endl;
 	cout << " Depth Viewer - Displays the Filtered Disparity between the two frames" << endl << " Closer objects appear in Red and Farther objects appear in Blue Color!"<< endl;
 	cout << " Select a point to display the depth of the point!" << endl  << endl;
+
+	//MY STUFF HERE
+
 	//Initialise the Camera
 	if(!_Disparity.InitCamera(true, true))
 	{
@@ -56,7 +59,7 @@ int DepthViewer::CameraStreaming()
 	namedWindow("Disparity Map", WINDOW_AUTOSIZE);
 	namedWindow("Left Image", WINDOW_AUTOSIZE);
 	namedWindow("Right Image", WINDOW_AUTOSIZE);
-	/**/
+
 	//Mouse callback set to disparity window
     setMouseCallback("Disparity Map", DepthPointSelection);
 
@@ -68,7 +71,7 @@ int DepthViewer::CameraStreaming()
 	cout << endl << "Press e/E on the Image Window to change the exposure of the camera" << endl;
 	cout << endl << "Press d/D on the Image Window to view the grayscale disparity map!" << endl << endl;
 
-	cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	//cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	string Inputline;
 
 	//Dispalys the filtered disparity, the depth of the point selected is displayed
@@ -265,7 +268,7 @@ void DepthPointSelection(int MouseEvent, int x, int y, int flags, void* param)
 }
 
 //Main Application
-int depth_main()
+int main()
 {
 	PrintDebug(DEBUG_ENABLED, L"Depth Viewer");
 	int ReturnStatus = -1;
