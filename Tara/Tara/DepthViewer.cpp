@@ -38,8 +38,12 @@ int DepthViewer::Init()
 		cout << "Deseja gravar a saida? (s, n)" << endl;
 		cin >> opt;
 	}
-	capture();
 
+
+	if (opt.compare("s") == 0)
+		capture();
+		
+	return 0;
 	//Initialise the Camera
 	if(!_Disparity.InitCamera(true, true))
 	{
@@ -81,6 +85,11 @@ int DepthViewer::CameraStreaming()
 
 	//cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	string Inputline;
+
+	int width, height;
+	//getSize(&width, &height);
+	width = 640;
+	height = 480;
 
 	//Dispalys the filtered disparity, the depth of the point selected is displayed
 	while(1)
