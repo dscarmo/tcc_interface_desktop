@@ -9,6 +9,7 @@ using namespace std;
 using namespace cv;
 
 int capture() {
+	int FPS = 25;
 	Mat channels[3];
 	VideoCapture vcap(0);
 	if (!vcap.isOpened()) {
@@ -16,33 +17,30 @@ int capture() {
 		return -1;
 	}
 
-	int frame_width = vcap.get(CV_CAP_PROP_FRAME_WIDTH);
+	int frame_width = vcap.get(CV_CAP_PROP_FRAME_WIDTH)*2;
 	int frame_height = vcap.get(CV_CAP_PROP_FRAME_HEIGHT);
-	VideoWriter video1("channel1.avi", CV_FOURCC('I', 'Y', 'U', 'V')/*-1*/, 10, Size(frame_width, frame_height), false);
+	//VideoWriter video1("channel1.avi", -1, 25, Size(frame_width, frame_height), true);
 
-	VideoWriter video2("channel2.avi", CV_FOURCC('I', 'Y', 'U', 'V')/*-1*/, 10, Size(frame_width, frame_height), false);
+	//VideoWriter video2("channel2.avi", -1, 25, Size(frame_width, frame_height), false);
 
+	VideoWriter recorder("drone_video.avi", -1, FPS, Size(frame_width, frame_height), false);
 	typedef std::chrono::high_resolution_clock Clock;
 	time_t t1 = time(0);
 	int framecount = 0;
 	for (;;) {
-		Mat frame;
+		Mat frame, concat;
 		vcap >> frame;
 		split(frame, channels);
-		imshow("canal 1", channels[1] );
-		imshow("canal 2", channels[2] );
-		video1.write(channels[1]);
-
-		video2.write(channels[2]);
-
+		hconcat(channels[1], channels[2], concat);
+		imshow("concatenado", concat);
+		recorder.write(concat);
 		framecount++;
 		time_t t2 = time(0);
 		int framerate = framecount / difftime(t2, t1);
 		cout << "Framerate: " << framerate << endl;
 		//putText(frame, "FPS: " + to_string(framerate), Point(10, 10), FONT_HERSHEY_PLAIN, 1, Scalar(255, 255, 255));
-		//imshow("Frame", frame);
-		char c = (char)waitKey(33);
-		if (c == 27) break;
+		if (waitKey(1) == 27) 
+			break;
 	}
 	destroyAllWindows();
 	return 0;
