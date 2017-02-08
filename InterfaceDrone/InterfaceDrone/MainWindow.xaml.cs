@@ -1,18 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace InterfaceDrone
 {
@@ -85,7 +73,7 @@ namespace InterfaceDrone
             server_running = false;
             udp.closeSockets();
       
-            AutoClosingMessageBox.Show("Loading...", "Performing clean-up tasks...", 500);
+            AutoClosingMessageBox.Show("Loading...", "Performing clean-up tasks...", 1000);
         }
 
         private void tryChangeIP(string ip, int port)
@@ -170,8 +158,12 @@ namespace InterfaceDrone
         {
             udp.sendCommand(aterrissar);
         }
+
         #endregion
 
-        
+        private void autoScroll(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            android.ScrollToEnd();
+        }
     }
 }

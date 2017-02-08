@@ -20,7 +20,7 @@
         <Button x:Name="yawRightButton" Content="Yaw Direita" HorizontalAlignment="Left" Margin="1059,247,0,0" VerticalAlignment="Top" Width="197" Height="30" FontSize="20" Click="yawRightButton_Click"/>
         <Label x:Name="versionLabel" Content="Alpha 0.2 - Diedre" HorizontalAlignment="Left" Margin="1153,653,0,0" VerticalAlignment="Top"/>
         <Label x:Name="cameraViewLabel" Content="Visão da Câmera" HorizontalAlignment="Left" Margin="41,103,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="android" HorizontalAlignment="Left" Height="194" Margin="686,341,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="128" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+        <TextBox x:Name="android" HorizontalAlignment="Left" Height="223" Margin="686,341,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="170" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" TextChanged="autoScroll"/>
         <Label x:Name="android_label" Content="Recepção Android" HorizontalAlignment="Left" Margin="686,310,0,0" VerticalAlignment="Top" Width="111"/>
         <Image x:Name="planeGuidance" HorizontalAlignment="Left" Height="274" Margin="856,310,0,0" VerticalAlignment="Top" Width="399" Source="rollpitchyaw.png"/>
         <Button x:Name="startButton" Content="Start" HorizontalAlignment="Left" Margin="686,569,0,0" VerticalAlignment="Top" Width="75" Click="runApplication"/>

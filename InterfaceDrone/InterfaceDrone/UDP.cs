@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using System.Windows;
 
 namespace InterfaceDrone
 {
@@ -13,6 +12,11 @@ namespace InterfaceDrone
         UdpClient udpServer;
         IPEndPoint serverEndIP;
         IPEndPoint clientEndIP;
+
+
+        private int lostPackets = 0;
+        private static int TRIES = 5;
+        private static int TIMEOUT = 1000;
 
         public string default_ip = "192.168.43.1";
         public static int SERVER_PORT = 11001;
@@ -25,23 +29,17 @@ namespace InterfaceDrone
             
 
             serverEndIP = new IPEndPoint(IPAddress.Loopback, CLIENT_PORT);
-            //clientEndIP = new IPEndPoint(IPAddress.Loopback, SERVER_PORT);
-
-            //clientEndIP = new IPEndPoint(IPAddress.Parse("192.168.26.2"), SERVER_PORT);
-
-            //clientEndIP = new IPEndPoint(IPAddress.Parse("192.168.26.2"), SERVER_PORT);
             clientEndIP = new IPEndPoint(IPAddress.Parse(default_ip), SERVER_PORT);
-
 
             udpClient = new UdpClient(CLIENT_PORT);
             udpServer = new UdpClient(SERVER_PORT);
 
-            udpClient.Client.SendTimeout = 1000;
-            udpClient.Client.ReceiveTimeout = 1000;
+            udpClient.Client.SendTimeout = TIMEOUT;
+            udpClient.Client.ReceiveTimeout = TIMEOUT;
 
         }
 
-        private void sendMsg(string str)
+        public void sendMsg(string str)
         {
 
             try
@@ -56,17 +54,48 @@ namespace InterfaceDrone
                 // Blocks until a message returns on this socket from a remote host.
                 Byte[] receiveBytes = udpClient.Receive(ref clientEndIP);
                 string returnData = Encoding.ASCII.GetString(receiveBytes);
+                var WordsArray = returnData.Split();
 
-                // Uses the IPEndPoint object to determine which of these two hosts responded.
+                //Se resposta n for recebido
+                if (String.Compare(WordsArray[0], "Recebido", false) != 0)
+                {
+                    lostPackets++;
+                    MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(str + " Resposta incorreta, enviando novamente" + (TRIES - lostPackets).ToString() + " vezes \n")));
+                    if (lostPackets < TRIES)
+                    {
+                        Thread.Sleep(TIMEOUT);
+                        sendMsg(str);
+                    }
+                    else
+                    {
+                        lostPackets = 0;
+                        return;
+                    }
+                }
+                else
+                {
+                    MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText("Ack recebido \n")));
+                }
                 Console.WriteLine("Cliente: This is the response you received " +
                                              returnData.ToString());
-                MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(returnData.ToString())));
+                
 
             }  
             catch (Exception e )
             {
                 Console.WriteLine(e.ToString());
-                AutoClosingMessageBox.Show(e.Message, "Erro ao Enviar Comando", 3000);
+                //AutoClosingMessageBox.Show(e.Message, "Erro ao Enviar Comando", 3000);
+                lostPackets++;
+                MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(str + " Timeout! Tentando denovo mais " + (TRIES - lostPackets).ToString() + " vezes \n")));
+                if (lostPackets < TRIES)
+                {
+                    sendMsg(str);
+                }
+                else
+                {
+                    lostPackets = 0;
+                    return;
+                }
             }
 
         }
@@ -94,14 +123,15 @@ namespace InterfaceDrone
                     data = udpServer.Receive(ref serverEndIP);
                     string data_string = Encoding.ASCII.GetString(data, 0, data.Length);
 
-                    string resposta = "recebi: " + data_string;
+                    //string resposta = "recebi: " + data_string;
+                    string resposta = "Recebido " + data_string;
                     byte[] resposta_data = Encoding.ASCII.GetBytes(resposta);
 
                     Console.WriteLine("Server: Enviando devolta pro cliente: " + Encoding.ASCII.GetString(resposta_data, 0, resposta_data.Length));
                     udpServer.Send(resposta_data, resposta.Length, serverEndIP);
                     
                     //Puts received stuff on frontend
-                    MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(data_string)));
+                    //MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(data_string)));
                  
                 }
 
@@ -131,7 +161,9 @@ namespace InterfaceDrone
         //Sends one of the string commands. 
         public void sendCommand(string command)
         {
-            sendMsg(command);
+            ConcurrentSend csend = new ConcurrentSend(command, this);
+            Thread thread_send = new Thread(csend.threaded_send);
+            thread_send.Start();
         }
 
         public void changeTargetIP(string ip, int port)
@@ -145,5 +177,21 @@ namespace InterfaceDrone
             udpServer.Close();
         }
     }
-    
+
+    public class ConcurrentSend
+    {
+        private UDP udp;
+        private string command;
+        public ConcurrentSend(string command, UDP udp)
+        {
+            this.udp = udp;
+            this.command = command;
+        }
+
+        public void threaded_send()
+        {
+            udp.sendMsg(command);
+        }
+    }
+
 }
