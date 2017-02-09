@@ -32,7 +32,7 @@ int DepthViewer::Init()
 	cout << " Select a point to display the depth of the point!" << endl  << endl;
 
 	//MY STUFF HERE
-	string opt = "";
+	/*string opt = "";
 	while (opt.compare("s") != 0 && opt.compare("n") != 0)
 	{
 		cout << "Deseja gravar a saida? (s, n)" << endl;
@@ -40,8 +40,8 @@ int DepthViewer::Init()
 	}
 
 
-	if (opt.compare("s") == 0)
-		capture();
+	//if (opt.compare("s") == 0)*/
+	capture();
 		
 	return 0;
 	//Initialise the Camera
