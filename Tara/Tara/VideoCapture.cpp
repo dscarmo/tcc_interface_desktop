@@ -9,8 +9,8 @@
 using namespace std;
 using namespace cv;
 
+
 int capture() {
-	double FPS = 30;
 	Mat channels[3];
 	vector<Mat> video1;
 	vector<Mat> video2;
@@ -18,6 +18,8 @@ int capture() {
 	int framecount = 0;
 	int howlong = 0;
 
+	bool revert;
+	double FPS = 30;
 
 	VideoCapture vcap(0);
 	if (!vcap.isOpened()) {
@@ -40,7 +42,7 @@ int capture() {
 	cout << "How long should be recorded? Aproximadamente 1 GB de RAM por minuto necessário (segundos)" << endl;
 	cin >> howlong;
 
-	bool revert = false;
+	revert = false;
 	string opt = "";
 	while (opt.compare("s") != 0 && opt.compare("n") != 0)
 	{
@@ -109,28 +111,35 @@ void getSize(int* width, int* height) {
 	waitKey(0);
 	vcap.release();
 }
-/*
-//DEPRECATED
-int record_frame(Mat frame, string name, int width, int height) {
-	VideoWriter video(name, CV_FOURCC('M', 'J', 'P', 'G'), 10, Size(width, height), true);
-	typedef std::chrono::high_resolution_clock Clock;
-	static time_t t1 = time(0);
-	static int framecount = 0;
-	try
-	{
-		video.write(frame);
-	}
-	catch (const std::exception &e)
-	{
-		cerr << e.what();
-	}
-	framecount++;
-	static time_t t2 = time(0);
-	int framerate = framecount / difftime(t2, t1);
-	//cout << "Framerate: " << framerate << endl;
-	putText(frame, "FPS: " + to_string(framerate), Point(10, 10), FONT_HERSHEY_PLAIN, 1, Scalar(255, 255, 255));
-	imshow(name, frame);
-	
 
-	return 0;
-}*/
+/*
+class DisparityWriter {
+private:
+	//Initializes a writer for disparity
+	VideoWriter disparityRecorder;
+	Size size;
+	int FPS;
+	bool revert;
+	Mat fliped;
+
+public:
+	DisparityWriter(Size sizee, int FPSS, bool revertt) {
+		size = sizee;
+		FPS = FPSS;
+		revert = revertt;
+		disparityRecorder = VideoWriter("drone_disparity.avi", CV_FOURCC('I', 'Y', 'U', 'V'), FPS, size, true);
+		fliped = Mat(sizee.height, sizee.width, CV_8UC3);
+	}
+	
+	//Is called multiple times
+	void storeDisparity(Mat disparity) {
+		if (revert) {
+			flip(disparity, fliped, -1);
+			disparityRecorder.write(fliped);
+		}
+		else
+		{
+			disparityRecorder.write(fliped);
+		}
+	}
+};*/

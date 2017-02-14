@@ -74,7 +74,7 @@ namespace InterfaceDrone
                 }
                 else
                 {
-                    MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText("Ack recebido \n")));
+                    MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText("Ack recebido "+ returnData + "\n")));
                 }
                 Console.WriteLine("Cliente: This is the response you received " +
                                              returnData.ToString());

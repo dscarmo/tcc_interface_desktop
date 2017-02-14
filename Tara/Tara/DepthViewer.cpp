@@ -24,6 +24,8 @@
 //Local point to access the user selected value
 Point g_SelectedPoint(-1, -1);
 
+DisparityWriter disparityWriter;
+
 //Initialises all the necessary files
 int DepthViewer::Init()
 {
@@ -32,7 +34,7 @@ int DepthViewer::Init()
 	cout << " Select a point to display the depth of the point!" << endl  << endl;
 
 	//MY STUFF HERE
-	/*string opt = "";
+	string opt = "";
 	while (opt.compare("s") != 0 && opt.compare("n") != 0)
 	{
 		cout << "Deseja gravar a saida? (s, n)" << endl;
@@ -40,10 +42,11 @@ int DepthViewer::Init()
 	}
 
 
-	//if (opt.compare("s") == 0)*/
-	capture();
+	if (opt.compare("s") == 0) {
+		capture();
+		return 0;
+	}
 		
-	return 0;
 	//Initialise the Camera
 	if(!_Disparity.InitCamera(true, true))
 	{
@@ -51,6 +54,7 @@ int DepthViewer::Init()
 		return 0;
 	}
 	
+
 	//Camera Streaming
 	CameraStreaming();
 
@@ -86,10 +90,8 @@ int DepthViewer::CameraStreaming()
 	//cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	string Inputline;
 
-	int width, height;
-	//getSize(&width, &height);
-	width = 640;
-	height = 480;
+	//Set up disparity recorder
+	bool disparitySetup = true;
 
 	//Dispalys the filtered disparity, the depth of the point selected is displayed
 	while(1)
@@ -114,6 +116,10 @@ int DepthViewer::CameraStreaming()
 			stringstream ss;
 			ss << DepthValue / 10 << " cm\0" ;
 			DisplayText(gDisparityMap_viz, ss.str(), g_SelectedPoint);
+		}
+
+		if (disparitySetup) {
+			disparityWriter = DisparityWriter(gDisparityMap_viz.size(), 30, true);
 		}
 
 		//Display the Images
