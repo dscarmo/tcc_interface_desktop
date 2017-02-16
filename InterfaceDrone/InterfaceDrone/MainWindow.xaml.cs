@@ -164,6 +164,8 @@ namespace InterfaceDrone
         private void autoScroll(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             android.ScrollToEnd();
+            android_debug.ScrollToEnd();
+            serverReception.ScrollToEnd();
         }
     }
 }

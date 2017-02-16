@@ -15,10 +15,10 @@ namespace InterfaceDrone
 
 
         private int lostPackets = 0;
-        private static int TRIES = 5;
+        private static int TRIES = 2;
         private static int TIMEOUT = 1000;
 
-        public string default_ip = "192.168.43.1";
+        public string default_ip = "192.168.165.30";
         public static int SERVER_PORT = 11001;
 
         static int CLIENT_PORT = 11000;
@@ -54,13 +54,14 @@ namespace InterfaceDrone
                 // Blocks until a message returns on this socket from a remote host.
                 Byte[] receiveBytes = udpClient.Receive(ref clientEndIP);
                 string returnData = Encoding.ASCII.GetString(receiveBytes);
+                MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(returnData + "\n")));
                 var WordsArray = returnData.Split();
 
                 //Se resposta n for recebido
                 if (String.Compare(WordsArray[0], "Recebido", false) != 0)
                 {
                     lostPackets++;
-                    MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(str + " Resposta incorreta, enviando novamente" + (TRIES - lostPackets).ToString() + " vezes \n")));
+                    MainWindow.frontEnd.android_debug.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android_debug.AppendText(str + " Resposta incorreta, enviando novamente" + (TRIES - lostPackets).ToString() + " vezes \n")));
                     if (lostPackets < TRIES)
                     {
                         Thread.Sleep(TIMEOUT);
@@ -74,7 +75,7 @@ namespace InterfaceDrone
                 }
                 else
                 {
-                    MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText("Ack recebido "+ returnData + "\n")));
+                    MainWindow.frontEnd.android_debug.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android_debug.AppendText("Ack recebido \n")));
                 }
                 Console.WriteLine("Cliente: This is the response you received " +
                                              returnData.ToString());
@@ -86,7 +87,7 @@ namespace InterfaceDrone
                 Console.WriteLine(e.ToString());
                 //AutoClosingMessageBox.Show(e.Message, "Erro ao Enviar Comando", 3000);
                 lostPackets++;
-                MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(str + " Timeout! Tentando denovo mais " + (TRIES - lostPackets).ToString() + " vezes \n")));
+                MainWindow.frontEnd.android_debug.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android_debug.AppendText(str + " Timeout! Tentando denovo mais " + (TRIES - lostPackets).ToString() + " vezes \n")));
                 if (lostPackets < TRIES)
                 {
                     sendMsg(str);
@@ -131,7 +132,7 @@ namespace InterfaceDrone
                     udpServer.Send(resposta_data, resposta.Length, serverEndIP);
                     
                     //Puts received stuff on frontend
-                    //MainWindow.frontEnd.android.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.android.AppendText(data_string)));
+                    MainWindow.frontEnd.serverReception.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.serverReception.AppendText(data_string + "\n")));
                  
                 }
 
