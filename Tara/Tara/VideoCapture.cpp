@@ -2,6 +2,7 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/videoio/videoio.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "VideoCapture.hpp"
 #include <iostream>
 #include <chrono>
 #include <windows.h>
@@ -112,34 +113,16 @@ void getSize(int* width, int* height) {
 	vcap.release();
 }
 
-/*
-class DisparityWriter {
-private:
-	//Initializes a writer for disparity
-	VideoWriter disparityRecorder;
-	Size size;
-	int FPS;
-	bool revert;
-	Mat fliped;
 
-public:
-	DisparityWriter(Size sizee, int FPSS, bool revertt) {
-		size = sizee;
-		FPS = FPSS;
-		revert = revertt;
-		disparityRecorder = VideoWriter("drone_disparity.avi", CV_FOURCC('I', 'Y', 'U', 'V'), FPS, size, true);
-		fliped = Mat(sizee.height, sizee.width, CV_8UC3);
-	}
 	
-	//Is called multiple times
-	void storeDisparity(Mat disparity) {
-		if (revert) {
-			flip(disparity, fliped, -1);
-			disparityRecorder.write(fliped);
-		}
-		else
-		{
-			disparityRecorder.write(fliped);
-		}
+//Is called multiple times
+void DisparityWriter::storeDisparity(Mat disparity) {
+	if (revert) {
+		flip(disparity, fliped, -1);
+		disparityRecorder.write(fliped);
 	}
-};*/
+	else
+	{
+		disparityRecorder.write(disparity);
+	}
+}

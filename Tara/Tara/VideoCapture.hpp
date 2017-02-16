@@ -24,14 +24,5 @@ public:
 	}
 
 	//Is called multiple times
-	void storeDisparity(cv::Mat disparity) {
-		if (revert) {
-			flip(disparity, fliped, -1);
-			disparityRecorder.write(fliped);
-		}
-		else
-		{
-			disparityRecorder.write(fliped);
-		}
-	}
+	void storeDisparity(cv::Mat disparity);
 };

@@ -37,6 +37,8 @@
         <TextBox x:Name="android_debug" HorizontalAlignment="Left" Height="127" Margin="110,569,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="484" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" TextChanged="autoScroll"/>
         <Label x:Name="android_debug_label" Content="Debug" HorizontalAlignment="Left" Margin="110,538,0,0" VerticalAlignment="Top" Width="111"/>
         <TextBox x:Name="serverReception" HorizontalAlignment="Left" Height="223" Margin="51,134,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="443" IsReadOnly="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.VerticalScrollBarVisibility="Auto" TextChanged="autoScroll"/>
+        <Label x:Name="alturaLabel" Content="Altura" HorizontalAlignment="Left" Margin="522,134,0,0" VerticalAlignment="Top"/>
+        <TextBox x:Name="altura" HorizontalAlignment="Left" Height="23" Margin="522,165,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="49" IsReadOnly="True"/>
 
 
 

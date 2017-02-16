@@ -119,8 +119,11 @@ int DepthViewer::CameraStreaming()
 		}
 
 		if (disparitySetup) {
-			disparityWriter = DisparityWriter(gDisparityMap_viz.size(), 30, true);
+			disparityWriter = DisparityWriter(gDisparityMap_viz.size(), 10, false);
+			disparitySetup = false;
 		}
+
+		disparityWriter.storeDisparity(gDisparityMap_viz);
 
 		//Display the Images
 		imshow("Disparity Map", gDisparityMap_viz);		
