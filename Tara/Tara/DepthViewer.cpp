@@ -37,13 +37,13 @@ int DepthViewer::Init()
 	string opt = "";
 	while (opt.compare("s") != 0 && opt.compare("n") != 0)
 	{
-		cout << "Deseja gravar a saida? (s, n)" << endl;
+		cout << "Deseja gravar a saida separadamente? (s, n)" << endl;
 		cin >> opt;
 	}
 
 
 	if (opt.compare("s") == 0) {
-		capture();
+		disparityWriter.syncCapture();
 		return 0;
 	}
 		
@@ -118,13 +118,12 @@ int DepthViewer::CameraStreaming()
 			DisplayText(gDisparityMap_viz, ss.str(), g_SelectedPoint);
 		}
 
-		if (disparitySetup) {
-			disparityWriter = DisparityWriter(gDisparityMap_viz.size(), 10, false);
-			disparitySetup = false;
+		if (!disparityWriter.setupDone) {
+			disparityWriter = DisparityWriter(LeftImage.size(), 10, false);
 		}
 
-		disparityWriter.storeDisparity(gDisparityMap_viz);
-
+		disparityWriter.syncWriteAll(gDisparityMap_viz, LeftImage, RightImage);
+		cout << LeftImage.size() << RightImage.size() << gDisparityMap_viz.size() << endl;
 		//Display the Images
 		imshow("Disparity Map", gDisparityMap_viz);		
 		imshow("Left Image",  LeftImage);		
