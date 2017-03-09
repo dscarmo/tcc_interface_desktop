@@ -122,6 +122,7 @@ int DepthViewer::CameraStreaming()
 			disparityWriter = DisparityWriter(LeftImage.size(), 10, false);
 		}
 
+
 		disparityWriter.syncWriteAll(gDisparityMap_viz, LeftImage, RightImage);
 		cout << LeftImage.size() << RightImage.size() << gDisparityMap_viz.size() << endl;
 		//Display the Images
@@ -293,6 +294,7 @@ void DepthPointSelection(int MouseEvent, int x, int y, int flags, void* param)
 }
 
 //Main Application
+/*
 int main()
 {
 	PrintDebug(DEBUG_ENABLED, L"Depth Viewer");
@@ -313,4 +315,5 @@ int main()
 		_getch();
 	}
 	return 0;
-}
+}*/
+
