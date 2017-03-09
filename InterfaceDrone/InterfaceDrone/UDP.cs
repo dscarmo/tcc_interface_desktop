@@ -18,15 +18,15 @@ namespace InterfaceDrone
         private static int TRIES = 2;
         private static int TIMEOUT = 1000;
 
-        public string default_ip = "192.168.165.30";
+        public string default_ip = "192.168.165.108";
         public static int SERVER_PORT = 11001;
 
         static int CLIENT_PORT = 11000;
 
         public UDP()
         {
-            
-            
+
+
 
             serverEndIP = new IPEndPoint(IPAddress.Loopback, CLIENT_PORT);
             clientEndIP = new IPEndPoint(IPAddress.Parse(default_ip), SERVER_PORT);
@@ -79,10 +79,10 @@ namespace InterfaceDrone
                 }
                 Console.WriteLine("Cliente: This is the response you received " +
                                              returnData.ToString());
-                
 
-            }  
-            catch (Exception e )
+
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
                 //AutoClosingMessageBox.Show(e.Message, "Erro ao Enviar Comando", 3000);
@@ -108,7 +108,7 @@ namespace InterfaceDrone
                 byte[] data = new byte[1024];
 
                 Console.WriteLine("Server: Waiting for a client...");
-          
+
 
                 data = udpServer.Receive(ref serverEndIP);
 
@@ -118,9 +118,13 @@ namespace InterfaceDrone
                 string welcome = "Welcome to my test server";
                 data = Encoding.ASCII.GetBytes(welcome);
                 udpServer.Send(data, data.Length, serverEndIP);
-
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 while (MainWindow.server_running)
                 {
+
+                    // the code that you want to measure comes here
+
+
                     data = udpServer.Receive(ref serverEndIP);
                     string data_string = Encoding.ASCII.GetString(data, 0, data.Length);
 
@@ -130,18 +134,22 @@ namespace InterfaceDrone
 
                     Console.WriteLine("Server: Enviando devolta pro cliente: " + Encoding.ASCII.GetString(resposta_data, 0, resposta_data.Length));
                     udpServer.Send(resposta_data, resposta.Length, serverEndIP);
-                    
+
+                    var elapsedMs = watch.ElapsedMilliseconds;
                     //Puts received stuff on frontend
-                    MainWindow.frontEnd.serverReception.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.serverReception.AppendText(data_string + "\n")));
-                 
+
+
+                    MainWindow.frontEnd.serverReception.Dispatcher.Invoke(new Action(() => MainWindow.frontEnd.serverReception.AppendText(data_string + " " + elapsedMs + "\n")));
+
                 }
+                watch.Stop();
 
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.ToString());
             }
-           
+
         }
 
         public void clientTest()
@@ -151,12 +159,12 @@ namespace InterfaceDrone
 
             Thread.Sleep(1000);
 
-            while(MainWindow.running)
+            while (MainWindow.running)
             {
                 sendMsg(mensagem++.ToString());
                 Thread.Sleep(500);
             }
-            
+
         }
 
         //Sends one of the string commands. 
