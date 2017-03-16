@@ -19,6 +19,7 @@
 **********************************************************************/
 #include "stdafx.h"
 #include "FaceDepth.h"
+#include "FaceDetection.hpp"
 #define RIGHTMATCH 150 //disparity range starts from 150 so in case of the point being less than 150 it means that the face is not fully covered in the right.
 
 //Constructor
@@ -35,8 +36,9 @@ int FaceDepth::Init()
 	cout << " Rectangle around the detected faces with the depth is displayed!" << endl << " Only the left window is displayed!" << endl << endl;
 
 	//Loads the cascade file
-	FaceCascade = CascadeClassifier("Face\\haarcascade_frontalface_alt2.xml");
-	
+	//FaceCascade.load("haarcascade_frontalface_alt.xml");
+	FaceCascade.load("lbpcascade_frontalface.xml");
+
 	//If the file is not loaded properly
 	if(FaceCascade.empty())
 	{		
@@ -78,7 +80,7 @@ int FaceDepth::CameraStreaming()
 	float DepthValue;
 	bool RImageDisplay = false;
 	int BrightnessVal = 4;		//Default value
-	Mat gDisparityMap, gDisparityMap_viz, RightImage;
+	Mat gDisparityMap, gDisparityMap_viz, RightImage, DisplayImage;
 	Point g_SelectedPoint;
 	
 	//user key input
@@ -93,6 +95,8 @@ int FaceDepth::CameraStreaming()
 
 	cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	string Inputline;
+	bool save = false;
+	int saved = 0;
 
 	//Estimates the depth of the face using Haarcascade file of OpenCV
 	while(1)
@@ -105,11 +109,18 @@ int FaceDepth::CameraStreaming()
 	
 		//Get disparity
 		_Disparity.GetDisparity(LeftImage, RightImage, &gDisparityMap, &gDisparityMap_viz);
-
+		
 		//Detect the faces
-		LFaces = DetectFace(LeftImage);
-	
-		//Estimate the Depth of the point selected
+		try
+		{
+			LFaces = DetectFace(LeftImage);
+		}
+		catch (const std::exception&)
+		{
+				
+		}
+		
+		//Estimate the Depth of the point selected and save
 		for (size_t i = 0; i < LFaces.size(); i++)
 		{
 			//Pointing to the center of the face
@@ -126,15 +137,22 @@ int FaceDepth::CameraStreaming()
 				DisplayText(LeftImage, ss.str(), Point(LFaces[i].x, LFaces[i].y));
 				ss.str(string());
 			}
+
+			if (save) {
+				imwrite("Faces\\" + to_string(saved++) + ".jpg", LeftImage(LFaces[i]));
+			}
 		}
+		save = false;
 		
 		//Display the Right Image when the key is pressed
 		if(RImageDisplay)
 		{			
-			imshow("Right Image", RightImage);
+			imshow("Depth", gDisparityMap);
+			//imshow("Right Image", RightImage);
 		}
 		//Display the Images
-		imshow("Left Image",  LeftImage);			
+		DisplayImage = drawFps(LeftImage);
+		imshow("Left Image",  DisplayImage);			
 
 		//waits for the Key input
 		WaitKeyStatus = waitKey(10);
@@ -149,13 +167,18 @@ int FaceDepth::CameraStreaming()
 			if(!RImageDisplay)
 			{
 				RImageDisplay = true;
-				namedWindow("Right Image", WINDOW_AUTOSIZE);
+				namedWindow("Depth", WINDOW_AUTOSIZE);
 			}
 			else 
 			{
 				RImageDisplay = false;
-				destroyWindow("Right Image");
+				destroyWindow("Depth");
 			}			
+		}
+		else if (WaitKeyStatus == 's' || WaitKeyStatus == 'S') //Show the right image
+		{
+			cout << "Saving next detected face" << endl;
+			save = true;
 		}
 		else if(WaitKeyStatus == 'b' || WaitKeyStatus == 'B') //Brightness
 		{	
@@ -204,7 +227,7 @@ vector<Rect> FaceDepth::DetectFace(Mat InputImage)
 	vector<Rect> FacesDetected;
 
 	//Detects the faces in the scene
-	FaceCascade.detectMultiScale(InputImage, FacesDetected, 1.3, 5);
+	FaceCascade.detectMultiScale(InputImage, FacesDetected/*, 1.3, 5*/);
 
 	//Marks the faces on the image
 	for(size_t i = 0; i < FacesDetected.size(); i++)

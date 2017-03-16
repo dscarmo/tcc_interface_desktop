@@ -2,10 +2,14 @@
 #include "DepthViewer.h"
 #include "VideoCapture.hpp"
 #include "FaceDepth.h"
+#include "FaceDetection.hpp"
+
+#include <ctime>
 
 using namespace std;
-
+using namespace cv;
 int main() {
+	//captureAndDetect();
 	int choice;
 	cout << "Disparity Recorder ou Face Detection? (0, 1)";
 	cin >> choice;
