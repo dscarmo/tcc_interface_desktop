@@ -80,7 +80,7 @@ int FaceDepth::CameraStreaming()
 	float DepthValue;
 	bool RImageDisplay = false;
 	int BrightnessVal = 4;		//Default value
-	Mat gDisparityMap, gDisparityMap_viz, RightImage, DisplayImage;
+	Mat gDisparityMap, gDisparityMap_viz, RightImage, DisplayImage, depthMap;
 	Point g_SelectedPoint;
 	
 	//user key input
@@ -97,6 +97,8 @@ int FaceDepth::CameraStreaming()
 	string Inputline;
 	bool save = false;
 	int saved = 0;
+
+	
 
 	//Estimates the depth of the face using Haarcascade file of OpenCV
 	while(1)
@@ -144,6 +146,20 @@ int FaceDepth::CameraStreaming()
 		}
 		save = false;
 		
+		//Construct DepthMap
+		FileStorage testFile("testSave.xml", FileStorage::WRITE);
+		depthMap = Mat(gDisparityMap.size(),CV_16UC1);
+		int SCALE = 10;
+		for (int i = 0; i < depthMap.rows; i++)
+			for (int j = 0; j < depthMap.cols; j++)
+			{
+				_Disparity.EstimateDepth(Point(j, i), &DepthValue);
+				if (DepthValue > 5000 || DepthValue < 500) DepthValue = 0;
+				depthMap.at<unsigned short>(i, j) = (unsigned short)round(DepthValue*SCALE);
+			}
+		testFile << "test" << depthMap;
+		
+		imshow("depth", depthMap);
 		//Display the Right Image when the key is pressed
 		if(RImageDisplay)
 		{			
@@ -160,6 +176,7 @@ int FaceDepth::CameraStreaming()
 		{	
 			vector<Rect>().swap(LFaces);
 			destroyAllWindows();
+			testFile.release();
 			break;
 		}
 		else if(WaitKeyStatus == 'r' || WaitKeyStatus == 'R') //Show the right image
