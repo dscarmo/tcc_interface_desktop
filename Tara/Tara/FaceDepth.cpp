@@ -72,6 +72,17 @@ Point FaceDepth::unscalePoint(Point Pt, Size CurrentSize, Size TargetSize)
 	return DesPt;
 }
 
+
+
+Mat faceRectangle;
+
+void onMouse(int event, int x, int y, int, void*)
+{
+	if (event != CV_EVENT_LBUTTONDOWN)
+		return;
+	if (!faceRectangle.empty())
+		cout << "x: " << x << "- y: " << y << endl << int(faceRectangle.at<uchar>(y, x));
+}
 //Streams the input from the camera
 int FaceDepth::CameraStreaming()
 {	
@@ -98,7 +109,6 @@ int FaceDepth::CameraStreaming()
 	bool save = false;
 	int saved = 0;
 
-	
 
 	//Estimates the depth of the face using Haarcascade file of OpenCV
 	while(1)
@@ -122,7 +132,12 @@ int FaceDepth::CameraStreaming()
 				
 		}
 		
-		//Estimate the Depth of the point selected and save
+		//Construct 
+		int SCALE = 10;
+		FileStorage testFile("testSave.xml", FileStorage::WRITE);
+		depthMap = Mat::zeros(gDisparityMap.size(), CV_16UC1);
+
+		//Estimate the Depth of the point selected and save/show 3D face
 		for (size_t i = 0; i < LFaces.size(); i++)
 		{
 			//Pointing to the center of the face
@@ -135,40 +150,30 @@ int FaceDepth::CameraStreaming()
 			
 			if(g_SelectedPoint.x > RIGHTMATCH && DepthValue > 0) //Mark the point selected by the user
 			{				
-				ss << DepthValue / 10 << " cm\0" ;
+				ss << DepthValue / (10 * 2) << " cm\0" ;
 				DisplayText(LeftImage, ss.str(), Point(LFaces[i].x, LFaces[i].y));
 				ss.str(string());
 			}
 
+			faceRectangle = gDisparityMap(LFaces[i]);
+			imshow("retanguloFace", faceRectangle);
+			
 			if (save) {
+				save = false;
 				imwrite("Faces\\" + to_string(saved++) + ".jpg", LeftImage(LFaces[i]));
+				imwrite("Faces\\" + to_string(saved++) + "disp.jpg", gDisparityMap(LFaces[i]));
+				testFile << "test_disp" << gDisparityMap(LFaces[i]);
 			}
 		}
-		save = false;
+
+		//imshow("depth", depthMap);
 		
-		//Construct DepthMap
-		FileStorage testFile("testSave.xml", FileStorage::WRITE);
-		depthMap = Mat(gDisparityMap.size(),CV_16UC1);
-		int SCALE = 10;
-		for (int i = 0; i < depthMap.rows; i++)
-			for (int j = 0; j < depthMap.cols; j++)
-			{
-				_Disparity.EstimateDepth(Point(j, i), &DepthValue);
-				if (DepthValue > 5000 || DepthValue < 500) DepthValue = 0;
-				depthMap.at<unsigned short>(i, j) = (unsigned short)round(DepthValue*SCALE);
-			}
-		testFile << "test" << depthMap;
-		
-		imshow("depth", depthMap);
-		//Display the Right Image when the key is pressed
-		if(RImageDisplay)
-		{			
-			imshow("Depth", gDisparityMap);
-			//imshow("Right Image", RightImage);
-		}
 		//Display the Images
 		DisplayImage = drawFps(LeftImage);
 		imshow("Left Image",  DisplayImage);			
+
+		//Mouse and keyboard callbacks
+		setMouseCallback("retanguloFace", onMouse, 0);
 
 		//waits for the Key input
 		WaitKeyStatus = waitKey(10);
@@ -179,19 +184,7 @@ int FaceDepth::CameraStreaming()
 			testFile.release();
 			break;
 		}
-		else if(WaitKeyStatus == 'r' || WaitKeyStatus == 'R') //Show the right image
-		{			
-			if(!RImageDisplay)
-			{
-				RImageDisplay = true;
-				namedWindow("Depth", WINDOW_AUTOSIZE);
-			}
-			else 
-			{
-				RImageDisplay = false;
-				destroyWindow("Depth");
-			}			
-		}
+
 		else if (WaitKeyStatus == 's' || WaitKeyStatus == 'S') //Show the right image
 		{
 			cout << "Saving next detected face" << endl;
@@ -238,6 +231,7 @@ int FaceDepth::CameraStreaming()
 	return 1;
 }
  
+
 //Detects the faces in the image passed
 vector<Rect> FaceDepth::DetectFace(Mat InputImage)
 {		
