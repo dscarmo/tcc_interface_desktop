@@ -38,7 +38,7 @@ private:
 	Mat LeftImage;
 
 	//Detects the faces in the scene
-	vector<Rect> DetectFace(Mat img);
+	//vector<Rect> DetectFace(Mat img);
 
 	//Unscaling the point to the actual image size for the lower resolutions
 	Point unscalePoint(Point Pt, Size CurrentSize, Size TargetSize);

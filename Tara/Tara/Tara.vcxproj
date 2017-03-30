@@ -151,17 +151,17 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DepthViewer.h" />
     <ClInclude Include="FaceDepth.h" />
     <ClInclude Include="FaceDetection.hpp" />
+    <ClInclude Include="LocalBinaryPattern.hpp" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="VideoCapture.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DepthViewer.cpp" />
     <ClCompile Include="FaceDepth.cpp" />
     <ClCompile Include="FaceDetection.cpp" />
+    <ClCompile Include="LocalBinaryPattern.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>

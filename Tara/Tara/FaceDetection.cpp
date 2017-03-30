@@ -29,9 +29,17 @@ Mat drawFps(Mat input) {
 }
 
 /** @function main */
-int captureAndDetect()
+int testFaceDetection()
 {
-	VideoCapture capture(0);
+	int cam = 1;
+	int web_width = 320;
+	int web_height = 240;
+	VideoCapture capture(cam);
+	if (cam) {
+		capture.set(CV_CAP_PROP_FRAME_WIDTH, web_width);
+		capture.set(CV_CAP_PROP_FRAME_HEIGHT, web_height);
+	}
+	//
 	Mat frame;
 
 	//-- 1. Load the cascades
@@ -74,7 +82,7 @@ int captureAndDetect()
 }
 
 /** @function detectAndDisplay */
-void faceDetect(Mat frame)
+vector<Rect> faceDetect(Mat frame)
 {
 	std::vector<Rect> faces;
 	Mat frame_gray;
@@ -97,4 +105,6 @@ void faceDetect(Mat frame)
 
 		imshow("ROI", faceROI);
 	}
+
+	return faces;
 }

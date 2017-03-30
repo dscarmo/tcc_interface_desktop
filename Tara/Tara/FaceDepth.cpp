@@ -125,7 +125,7 @@ int FaceDepth::CameraStreaming()
 		//Detect the faces
 		try
 		{
-			LFaces = DetectFace(LeftImage);
+			LFaces = faceDetect(LeftImage);
 		}
 		catch (const std::exception&)
 		{
@@ -233,22 +233,23 @@ int FaceDepth::CameraStreaming()
  
 
 //Detects the faces in the image passed
-vector<Rect> FaceDepth::DetectFace(Mat InputImage)
-{		
-	vector<Rect> FacesDetected;
-
-	//Detects the faces in the scene
-	FaceCascade.detectMultiScale(InputImage, FacesDetected/*, 1.3, 5*/);
-
-	//Marks the faces on the image
-	for(size_t i = 0; i < FacesDetected.size(); i++)
-	{
-		rectangle(InputImage, FacesDetected[i], Scalar(255, 0, 0), 2);  
-	}
-
-	//Return the detected faces
-	return FacesDetected;
-}
+//
+//vector<Rect> FaceDepth::DetectFace(Mat InputImage)
+//{		
+//	vector<Rect> FacesDetected;
+//
+//	//Detects the faces in the scene
+//	FaceCascade.detectMultiScale(InputImage, FacesDetected/*, 1.3, 5*/);
+//
+//	//Marks the faces on the image
+//	for(size_t i = 0; i < FacesDetected.size(); i++)
+//	{
+//		rectangle(InputImage, FacesDetected[i], Scalar(255, 0, 0), 2);  
+//	}
+//
+//	//Return the detected faces
+//	return FacesDetected;
+//}
 
 //Main Function
 /*

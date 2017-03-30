@@ -1,7 +1,4 @@
 #include "stdafx.h"
-#include "opencv2/imgproc/imgproc.hpp"
-#include "opencv2/videoio/videoio.hpp"
-#include "opencv2/highgui/highgui.hpp"
 #include "VideoCapture.hpp"
 #include <iostream>
 #include <chrono>
@@ -20,7 +17,7 @@ int DisparityWriter::syncCapture() {
 	int howlong = 0;
 
 	bool revert;
-	double FPS = 30;
+	double FPS = 15;
 
 	VideoCapture vcap(0);
 	if (!vcap.isOpened()) {
