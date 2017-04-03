@@ -35,19 +35,6 @@ int FaceDepth::Init()
 	cout << " Detects multiple faces in the frame!" << endl << " Uses OpenCV Haarcascade file in the Face folder!" << endl;
 	cout << " Rectangle around the detected faces with the depth is displayed!" << endl << " Only the left window is displayed!" << endl << endl;
 
-	//Loads the cascade file
-	//FaceCascade.load("haarcascade_frontalface_alt.xml");
-	FaceCascade.load("lbpcascade_frontalface.xml");
-
-	//If the file is not loaded properly
-	if(FaceCascade.empty())
-	{		
-		PrintDebug(DEBUG_ENABLED, L"Haarcascade Classifier File Missing!");	
-		printf("\n Haarcascade Classifier File Missing!\n");	
-		return 0;
-	}
-	
-	PrintDebug(DEBUG_ENABLED, L"Loaded Haarcascade Classifier File!");	
 
 	if(!_Disparity.InitCamera(true, true)) //Initialise the camera
 	{
@@ -109,6 +96,11 @@ int FaceDepth::CameraStreaming()
 	bool save = false;
 	int saved = 0;
 
+	if (initCascade()) 
+	{
+		cout << "Detection file problem!";
+		return 1;
+	}
 
 	//Estimates the depth of the face using Haarcascade file of OpenCV
 	while(1)
@@ -127,9 +119,9 @@ int FaceDepth::CameraStreaming()
 		{
 			LFaces = faceDetect(LeftImage);
 		}
-		catch (const std::exception&)
+		catch (const std::exception& e)
 		{
-				
+			cout << e.what();
 		}
 		
 		//Construct 

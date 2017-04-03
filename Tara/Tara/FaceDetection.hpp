@@ -7,4 +7,6 @@
 
 std::vector<cv::Rect> faceDetect(cv::Mat frame);
 cv::Mat drawFps(cv::Mat input);
+int initCascade();
+
 int testFaceDetection();

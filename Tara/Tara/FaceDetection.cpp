@@ -6,7 +6,7 @@ using namespace std;
 using namespace cv;
 
 /** Global variables */
-String face_cascade_name = "haarcascade_frontalface_alt.xml";
+String face_cascade_name = "lbpcascade_frontalface.xml";
 CascadeClassifier face_cascade;
 
 //Draw FPS utility
@@ -26,6 +26,14 @@ Mat drawFps(Mat input) {
 	}
 	last_time = clock();
 	return output;
+}
+
+int initCascade() {
+	if (!face_cascade.load(face_cascade_name)) { 
+		printf("--(!)Error loading\n"); 
+		return 1; 
+	}
+	else return 0;
 }
 
 /** @function main */
@@ -87,11 +95,13 @@ vector<Rect> faceDetect(Mat frame)
 	std::vector<Rect> faces;
 	Mat frame_gray;
 
-	cvtColor(frame, frame_gray, CV_BGR2GRAY);
-	equalizeHist(frame_gray, frame_gray);
+	//cvtColor(frame, frame_gray, CV_BGR2GRAY);
+	equalizeHist(frame, frame_gray);
+
+	imshow("db",frame_gray);
 
 	//-- Detect faces
-	face_cascade.detectMultiScale(frame_gray, faces);
+	face_cascade.detectMultiScale(frame, faces);
 
 	for (size_t i = 0; i < faces.size(); i++)
 	{
