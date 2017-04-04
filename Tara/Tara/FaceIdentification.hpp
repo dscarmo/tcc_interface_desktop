@@ -15,27 +15,26 @@
 
 #pragma once
 #include "Tara.h"
+#include "LocalBinaryPattern.hpp"
 
 using namespace cv;
 using namespace Tara;
 
-class FaceDepth
+class FaceIdentification
 {
 public:
 	
 	//Constructor
-	FaceDepth(void);
+	FaceIdentification(void);
 	 
 	//Initalises all the methods
 	int Init();
 			
 private:
-
-	//classifier
-	CascadeClassifier FaceCascade;
-	
 	//Image
 	Mat LeftImage;
+
+	LocalBinaryPattern lbp;
 
 	//Detects the faces in the scene
 	//vector<Rect> DetectFace(Mat img);

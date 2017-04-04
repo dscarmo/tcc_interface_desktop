@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "FaceDepth.h"
+#include "FaceIdentification.hpp"
 #include "FaceDetection.hpp"
 #include "LocalBinaryPattern.hpp"
 #include "VideoCapture.hpp"
@@ -8,11 +8,13 @@
 using namespace std;
 using namespace cv;
 int main() {
-
-	//LocalBinaryPattern lbp;
-	//return lbp.test();
-	//captureAndDetect();
 	int choice;
+	//LocalBinaryPattern lbp;
+	//lbp.test();
+	//cin >> choice;
+	//return 0;
+	//captureAndDetect();
+	//int choice;
 	cout << "Stereo Dataset Recorder ou Face Identification? (0, 1)";
 	cin >> choice;
 
@@ -21,10 +23,10 @@ int main() {
 		int ReturnStatus = -1;
 
 		//Object creation
-		FaceDepth _FaceDepth;
+		FaceIdentification _FaceIdentification;
 
 		//Initialises the Face Detection Project
-		ReturnStatus = _FaceDepth.Init();
+		ReturnStatus = _FaceIdentification.Init();
 
 		cout << endl << "Exit: Face Detection Application" << endl << endl;
 

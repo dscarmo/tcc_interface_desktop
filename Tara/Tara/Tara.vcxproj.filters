@@ -27,13 +27,13 @@
     <ClInclude Include="VideoCapture.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FaceDepth.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FaceDetection.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LocalBinaryPattern.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FaceIdentification.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,9 +44,6 @@
     <ClCompile Include="VideoCapture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FaceDepth.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -54,6 +51,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="LocalBinaryPattern.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FaceIdentification.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

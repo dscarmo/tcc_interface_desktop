@@ -94,26 +94,15 @@ vector<Rect> faceDetect(Mat frame)
 {
 	std::vector<Rect> faces;
 	Mat frame_gray;
-
-	//cvtColor(frame, frame_gray, CV_BGR2GRAY);
 	equalizeHist(frame, frame_gray);
 
-	imshow("db",frame_gray);
-
 	//-- Detect faces
-	face_cascade.detectMultiScale(frame, faces);
+	face_cascade.detectMultiScale(frame_gray, faces);
 
 	for (size_t i = 0; i < faces.size(); i++)
 	{
 		rectangle(frame, faces[i], Scalar(255, 0, 255));
-
-		// 20% increase in given rect
-		//Mat faceROI = frame_gray(Rect(0.8*faces[i].x, 0.8*faces[i].y, 1.44*faces[i].width, 1.44*faces[i].height));
-
 		Mat faceROI = frame_gray(faces[i]);
-
-
-		imshow("ROI", faceROI);
 	}
 
 	return faces;

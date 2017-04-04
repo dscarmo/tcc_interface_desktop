@@ -14,22 +14,23 @@
 ///////////////////////////////////////////////////////////////////////////
 
 /**********************************************************************
-	FaceDepth: Estimates the depth of the person from the camera by 
+	FaceIdentification: Estimates the depth of the person from the camera by 
 			    detecting the face of the person
 **********************************************************************/
 #include "stdafx.h"
-#include "FaceDepth.h"
+#include "FaceIdentification.hpp"
 #include "FaceDetection.hpp"
+#include "LocalBinaryPattern.hpp"
 #define RIGHTMATCH 150 //disparity range starts from 150 so in case of the point being less than 150 it means that the face is not fully covered in the right.
 
 //Constructor
-FaceDepth::FaceDepth(void)
+FaceIdentification::FaceIdentification(void)
 {
 	ss.precision(2); //Restricting the precision after decimal
 }
 
 //Initialises all the variables and methods
-int FaceDepth::Init()
+int FaceIdentification::Init()
 {	
 	cout << endl << "		Face Detection Application " << endl  << endl;
 	cout << " Detects multiple faces in the frame!" << endl << " Uses OpenCV Haarcascade file in the Face folder!" << endl;
@@ -49,7 +50,7 @@ int FaceDepth::Init()
 }
 
 //Unscaling the point to the actual image size for the lower resolutions
-Point FaceDepth::unscalePoint(Point Pt, Size CurrentSize, Size TargetSize)
+Point FaceIdentification::unscalePoint(Point Pt, Size CurrentSize, Size TargetSize)
 {
 	Point DesPt;
 
@@ -71,7 +72,7 @@ void onMouse(int event, int x, int y, int, void*)
 		cout << "x: " << x << "- y: " << y << endl << int(faceRectangle.at<uchar>(y, x));
 }
 //Streams the input from the camera
-int FaceDepth::CameraStreaming()
+int FaceIdentification::CameraStreaming()
 {	
 	stringstream ss;
 	vector<Rect> LFaces;
@@ -80,7 +81,7 @@ int FaceDepth::CameraStreaming()
 	int BrightnessVal = 4;		//Default value
 	Mat gDisparityMap, gDisparityMap_viz, RightImage, DisplayImage, depthMap;
 	Point g_SelectedPoint;
-	
+	Rect saveRect(0,0, 50, 50);
 	//user key input
 	char WaitKeyStatus;
 
@@ -127,11 +128,19 @@ int FaceDepth::CameraStreaming()
 		//Construct 
 		int SCALE = 10;
 		FileStorage testFile("testSave.xml", FileStorage::WRITE);
-		depthMap = Mat::zeros(gDisparityMap.size(), CV_16UC1);
 
+		if (LFaces.size() == 0) {
+			imshow("retanguloFace", gDisparityMap(saveRect));
+			lbp.grayLBPpipeline(LeftImage(saveRect));
+		} else
 		//Estimate the Depth of the point selected and save/show 3D face
 		for (size_t i = 0; i < LFaces.size(); i++)
 		{
+			//Save last detected face
+			if (i == (LFaces.size() - 1)) {
+				saveRect = LFaces[i];
+			}
+
 			//Pointing to the center of the face
 			g_SelectedPoint = Point(LFaces[i].x + LFaces[i].width / 2, LFaces[i].y + LFaces[i].height / 2);
 
@@ -147,9 +156,9 @@ int FaceDepth::CameraStreaming()
 				ss.str(string());
 			}
 
-			faceRectangle = gDisparityMap(LFaces[i]);
-			imshow("retanguloFace", faceRectangle);
-			
+			imshow("retanguloFace", gDisparityMap(LFaces[i]));
+			lbp.grayLBPpipeline(LeftImage(LFaces[i]));
+
 			if (save) {
 				save = false;
 				imwrite("Faces\\" + to_string(saved++) + ".jpg", LeftImage(LFaces[i]));
@@ -226,7 +235,7 @@ int FaceDepth::CameraStreaming()
 
 //Detects the faces in the image passed
 //
-//vector<Rect> FaceDepth::DetectFace(Mat InputImage)
+//vector<Rect> FaceIdentification::DetectFace(Mat InputImage)
 //{		
 //	vector<Rect> FacesDetected;
 //
@@ -251,10 +260,10 @@ int main()
 	PrintDebug(DEBUG_ENABLED, L"Face Detection!");
 
 	//Object creation
-	FaceDepth _FaceDepth;
+	FaceIdentification _FaceIdentification;
 	
 	//Initialises the Face Detection Project
-	ReturnStatus = _FaceDepth.Init();
+	ReturnStatus = _FaceIdentification.Init();
 
 	PrintDebug(DEBUG_ENABLED, L"Exit: Face Detection!");
 	cout << endl << "Exit: Face Detection Application" << endl << endl;	

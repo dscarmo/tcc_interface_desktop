@@ -151,7 +151,7 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FaceDepth.h" />
+    <ClInclude Include="FaceIdentification.hpp" />
     <ClInclude Include="FaceDetection.hpp" />
     <ClInclude Include="LocalBinaryPattern.hpp" />
     <ClInclude Include="stdafx.h" />
@@ -159,7 +159,7 @@
     <ClInclude Include="VideoCapture.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FaceDepth.cpp" />
+    <ClCompile Include="FaceIdentification.cpp" />
     <ClCompile Include="FaceDetection.cpp" />
     <ClCompile Include="LocalBinaryPattern.cpp" />
     <ClCompile Include="main.cpp" />
