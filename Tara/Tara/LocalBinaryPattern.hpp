@@ -2,7 +2,7 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/videoio/videoio.hpp"
-//#include "opencv2/objdetect/objdetect.hpp"
+#include "opencv2/objdetect/objdetect.hpp"
 //#include <windef.h>
 
 class LocalBinaryPattern {
@@ -11,6 +11,7 @@ private:
 	uchar roiLBP(cv::Mat input);
 	
 	cv::Mat LocalBinaryPattern::grayImageLBP(cv::Mat grayImage);
+	cv::Mat LocalBinaryPattern::differenceLBP(cv::Mat depthImage);
 
 	void LocalBinaryPattern::webCamTest();
 
@@ -19,5 +20,7 @@ private:
 public: 
 	int LocalBinaryPattern::test();
 	void LocalBinaryPattern::grayLBPpipeline(cv::Mat frame);
+	void LocalBinaryPattern::depthPipeline(cv::Mat frame);
+
 
 };

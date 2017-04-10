@@ -81,7 +81,7 @@ int FaceIdentification::CameraStreaming()
 	int BrightnessVal = 4;		//Default value
 	Mat gDisparityMap, gDisparityMap_viz, RightImage, DisplayImage, depthMap;
 	Point g_SelectedPoint;
-	Rect saveRect(0,0, 50, 50);
+	Rect saveRect(20,20, 120, 120);
 	//user key input
 	char WaitKeyStatus;
 
@@ -132,6 +132,7 @@ int FaceIdentification::CameraStreaming()
 		if (LFaces.size() == 0) {
 			imshow("retanguloFace", gDisparityMap(saveRect));
 			lbp.grayLBPpipeline(LeftImage(saveRect));
+			lbp.depthPipeline(gDisparityMap(saveRect));
 		} else
 		//Estimate the Depth of the point selected and save/show 3D face
 		for (size_t i = 0; i < LFaces.size(); i++)
@@ -158,6 +159,7 @@ int FaceIdentification::CameraStreaming()
 
 			imshow("retanguloFace", gDisparityMap(LFaces[i]));
 			lbp.grayLBPpipeline(LeftImage(LFaces[i]));
+			lbp.depthPipeline(gDisparityMap(LFaces[i]));
 
 			if (save) {
 				save = false;

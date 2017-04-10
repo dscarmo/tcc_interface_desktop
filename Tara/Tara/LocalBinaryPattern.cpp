@@ -39,6 +39,62 @@ Mat LocalBinaryPattern::grayImageLBP(Mat grayImage) {
 	return dst;
 }
 
+//This makes no sense
+// Calcula LBP direto de uma imagem de profundidade
+Mat LocalBinaryPattern::differenceLBP(Mat depthImage) {
+	//Aplicando Construtor (ros, cols, type)
+	Mat dst(depthImage.rows - 2, depthImage.cols - 2, CV_8UC1);
+	dst = Scalar(0);
+
+	int difference = 0;
+
+	//Compute normal LBP
+	for (int i = 1; i<depthImage.rows - 1; i++) {
+		for (int j = 1; j<depthImage.cols - 1; j++) {
+			unsigned char code = 0;
+			code |= (depthImage.at<uchar>(i - 1, j - 1) > depthImage.at<uchar>(i, j)) << 7;
+			difference += (int)(depthImage.at<uchar>(i, j) - depthImage.at<uchar>(i - 1, j - 1));
+
+			code |= (depthImage.at<uchar>(i - 1, j) > depthImage.at<uchar>(i, j)) << 6;
+			difference += (int)(depthImage.at<uchar>(i, j) - depthImage.at<uchar>(i - 1, j));
+
+			code |= (depthImage.at<uchar>(i - 1, j + 1) > depthImage.at<uchar>(i, j)) << 5;
+			difference += (int)(depthImage.at<uchar>(i, j) - depthImage.at<uchar>(i - 1, j + 1));
+
+			code |= (depthImage.at<uchar>(i, j + 1) > depthImage.at<uchar>(i, j)) << 4;
+			difference += (int)(depthImage.at<uchar>(i, j) - depthImage.at<uchar>(i, j + 1));
+
+			code |= (depthImage.at<uchar>(i + 1, j + 1) > depthImage.at<uchar>(i, j)) << 3;
+			difference += (int)(depthImage.at<uchar>(i, j) - depthImage.at<uchar>(i + 1, j + 1));
+
+			code |= (depthImage.at<uchar>(i + 1, j) > depthImage.at<uchar>(i, j)) << 2;
+			difference += (int)(depthImage.at<uchar>(i, j) - depthImage.at<uchar>(i + 1, j));
+
+			code |= (depthImage.at<uchar>(i + 1, j - 1) > depthImage.at<uchar>(i, j)) << 1;
+			difference += (int)(depthImage.at<uchar>(i, j) - depthImage.at<uchar>(i + 1, j - 1));
+
+			code |= (depthImage.at<uchar>(i, j - 1) > depthImage.at<uchar>(i, j)) << 0;
+			difference += (int)(depthImage.at<uchar>(i, j) - depthImage.at<uchar>(i, j - 1));
+
+			int total = (difference /*+ (int)code*/);
+			if (total > 255) {
+				dst.at<unsigned char>(i - 1, j - 1) = 255;
+			}
+			else if (total < 0) {
+				dst.at<unsigned char>(i - 1, j - 1) = 0;
+			}
+			else
+				//Add difference number to final binary number
+				dst.at<unsigned char>(i - 1, j - 1) = (unsigned char)total;
+
+
+			
+		}
+	}
+
+	return dst;
+}
+
 
 double** LocalBinaryPattern::getHistogram(cv::Mat lbpImage) {
 	double** hist = 0;
@@ -124,6 +180,7 @@ void LocalBinaryPattern::webCamTest() {
 		vcap >> frame;
 		cvtColor(frame, grayframe, CV_BGR2GRAY);
 		grayLBPpipeline(grayframe);
+		depthPipeline(grayframe);
 		waitKey(1);
 	}
 }
@@ -148,20 +205,68 @@ void LocalBinaryPattern::grayLBPpipeline(Mat frame) {
 		hist.push_back(frequency*100);
 	}
 	drawHist(hist, draw);
-	imshow("draw", draw);
+	imshow("histograma lbp", draw);
 	//cout << acum << endl;
 	hist.clear();
+}
+
+//Gets LBP values and histogram of provided ROI for LBP
+void LocalBinaryPattern::depthPipeline(Mat frame) {
+	Size frameSize = frame.size();
+	//double** histogram;
+	//vector<double> hist;
+	HOGDescriptor hog;
+	vector<float> features;
+	//vector<Point>locs;
+	Mat3b draw;
+	Mat feature;
+	imshow("3d frame", frame);
+
+	try
+	{
+		hog.compute(frame, features);
+		cout << features.size() << endl;
+		/*feature.create(ders.size(), 1, CV_32FC1);
+		for (int i = 0; i<ders.size(); i++)
+		{
+			feature.at<float>(i, 0) = ders.at(i);
+		}*/
+	}
+	catch (const std::exception& e)
+	{
+		cout << e.what();
+	}
+	
+	//lbp3d = differenceLBP(frame);
+	//imshow("lbp3d", lbp3d);
+	
+
+	/*histogram = getHistogram(frame);
+	//cout << endl << "Histograma: " << endl;
+	double acum = 0;
+	for (int i = 0; i < 256; i++)
+	{
+		double frequency = histogram[0][i];
+		//cout << i << ": " << frequency << endl;
+		acum += frequency;
+		hist.push_back(frequency * 100);
+	}
+	drawHist(hist, draw);*/
+//	imshow("histograma 3dlbp", draw);
+	//cout << acum << endl;
+	//hist.clear();
 }
 
 int LocalBinaryPattern::test() {
 	webCamTest();
 	return 0;
-	uchar testData[9] = { 3, 4, 5,
-						  0, 3, 0,
-						  1, 2, 3 };
+	uchar testData[9] = { 4, 3, 4,
+						  3, 3, 3,
+						  3, 3, 3 };
 	Mat testMat(Size(3, 3), CV_8UC1, testData);
 	cout << testMat << endl;
 	cout << grayImageLBP(testMat);
+	cout << differenceLBP(testMat);
 
 	//Actual intended LBP:
 	//Get face ROI
