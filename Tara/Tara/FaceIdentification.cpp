@@ -229,6 +229,10 @@ int FaceIdentification::CameraStreaming()
 				cout << endl << " Value out of Range - Invalid!!" << endl;
 			}							
 		}
+		/*LeftImage.release();
+		RightImage.release();
+		gDisparityMap.release();
+		gDisparityMap_viz.release();*/
 	}
 
 	return 1;

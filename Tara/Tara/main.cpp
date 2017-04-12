@@ -9,16 +9,14 @@ using namespace std;
 using namespace cv;
 int main() {
 	int choice;
-	//LocalBinaryPattern lbp;
-	//lbp.test();
 	//cin >> choice;
 	//return 0;
 	//captureAndDetect();
 	//int choice;
-	cout << "Stereo Dataset Recorder ou Face Identification? (0, 1)";
+	cout << "Stereo Dataset Recorder, Face Identification ou WebCam Test?? (0, 1, ?)";
 	cin >> choice;
 
-	if (choice) {
+	if (choice == 1) {
 		//Face detect
 		int ReturnStatus = -1;
 
@@ -37,7 +35,7 @@ int main() {
 		}
 		return 0;
 	}
-	else {
+	else if (choice == 0) {
 		DisparityWriter disparityWriter;
 
 		disparityWriter.syncCapture();
@@ -63,5 +61,11 @@ int main() {
 			_getch();
 		}
 		return 0;*/
+	}
+	else {
+		LocalBinaryPattern lbp;
+		lbp.test();
+
+
 	}
 }

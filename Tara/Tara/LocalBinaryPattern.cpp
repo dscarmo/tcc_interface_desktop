@@ -202,30 +202,46 @@ void LocalBinaryPattern::grayLBPpipeline(Mat frame) {
 		double frequency = histogram[0][i];
 		//cout << i << ": " << frequency << endl;
 		acum += frequency;
-		hist.push_back(frequency*100);
+		hist.push_back(frequency*255);
 	}
 	drawHist(hist, draw);
 	imshow("histograma lbp", draw);
-	//cout << acum << endl;
+	cout << acum << endl;
 	hist.clear();
 }
 
-//Gets LBP values and histogram of provided ROI for LBP
+//Applies depth methods
 void LocalBinaryPattern::depthPipeline(Mat frame) {
-	Size frameSize = frame.size();
+	//Size frameSize = frame.size();
 	//double** histogram;
 	//vector<double> hist;
-	HOGDescriptor hog;
-	vector<float> features;
+	//HOGDescriptor hog;
+	//vector<float> features;
 	//vector<Point>locs;
+	//Mat3b draw;
+	//Mat feature;
+	//imshow("3d frame", frame);
+	Mat descriptor;
+	Mat normalized_descriptor;
+	vector<double> hist;
 	Mat3b draw;
-	Mat feature;
-	imshow("3d frame", frame);
-
 	try
 	{
-		hog.compute(frame, features);
-		cout << features.size() << endl;
+		descriptor = TDLBP(frame);
+		normalize(descriptor, normalized_descriptor, 0, 1, NORM_MINMAX,CV_32FC1);
+		double acum = 0;
+		for (int i = 0; i < 14 * 64 * 4; i++) //put this size in a define
+		{
+			double frequency = normalized_descriptor.at<float>(0,i);
+			//cout << i << ": " << frequency << endl;
+			acum += frequency;
+			hist.push_back(frequency*255);
+		}
+		//cout << acum << endl;
+		drawHist(hist, draw);
+		imshow("histograma 3dlbp", draw);
+		//hog.compute(frame, features);
+		//cout << features.size() << endl;
 		/*feature.create(ders.size(), 1, CV_32FC1);
 		for (int i = 0; i<ders.size(); i++)
 		{
@@ -257,6 +273,14 @@ void LocalBinaryPattern::depthPipeline(Mat frame) {
 	//hist.clear();
 }
 
+Mat LocalBinaryPattern::TDLBP(Mat depthImage) {
+	Mat finalDescriptor = calculate3DLBP(depthImage);
+	Mat descriptorDisplay;
+	finalDescriptor.convertTo(descriptorDisplay, CV_8UC1);
+	imshow("3dlbp descriptor",descriptorDisplay);
+	return finalDescriptor;
+}
+
 int LocalBinaryPattern::test() {
 	webCamTest();
 	return 0;
@@ -266,7 +290,7 @@ int LocalBinaryPattern::test() {
 	Mat testMat(Size(3, 3), CV_8UC1, testData);
 	cout << testMat << endl;
 	cout << grayImageLBP(testMat);
-	cout << differenceLBP(testMat);
+	//cout << differenceLBP(testMat);
 
 	//Actual intended LBP:
 	//Get face ROI
