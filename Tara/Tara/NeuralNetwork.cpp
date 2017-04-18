@@ -26,19 +26,21 @@ int runFromDirectory() {
 	//int contador = 0;
 
 	Mat image;
-	int resultado;
+	//int resultado;
 	vector<String> all_files;
 	
 
 	//Onde ta as imagem
+	
 	//const char* input_dir = "Faces";
-	const char* input_dir = "Faces\\diedre_night";
-
+	//const char* input_dir = "Faces\\diedre_night";
+	const char* input_dir = "Faces\\diedre\\gray";
 
 	//Pointer to input directory
 	DIR *dir_ptr = opendir(input_dir);
 	if (dir_ptr == NULL) {
 		cout << "DIR NULL POINTER!!! Insert correct hardcoded dataset directory" << endl;
+		system("PAUSE");
 		return 1;
 	}
 

@@ -126,7 +126,6 @@ double** LocalBinaryPattern::getHistogram(cv::Mat lbpImage) {
 		}
 
 	}
-
 	//Normalizando o histograma?
 	for (int h = 0; h < 1; h++)
 		for (int w = 0; w < 256; w++) {
@@ -137,7 +136,6 @@ double** LocalBinaryPattern::getHistogram(cv::Mat lbpImage) {
 
 			//std::cout << hist[h][w] << "\n";
 		}
-
 	img_temp.release();
 	return hist;
 }
@@ -206,21 +204,13 @@ void LocalBinaryPattern::grayLBPpipeline(Mat frame) {
 	}
 	drawHist(hist, draw);
 	imshow("histograma lbp", draw);
-	//cout << acum << endl;
+	cout << acum << endl;
 	hist.clear();
 }
 
 //Applies depth methods
 void LocalBinaryPattern::depthPipeline(Mat frame) {
-	//Size frameSize = frame.size();
-	//double** histogram;
-	//vector<double> hist;
-	//HOGDescriptor hog;
-	//vector<float> features;
-	//vector<Point>locs;
-	//Mat3b draw;
-	//Mat feature;
-	//imshow("3d frame", frame);
+	
 	Mat descriptor;
 	Mat normalized_descriptor;
 	vector<double> hist;
@@ -228,56 +218,42 @@ void LocalBinaryPattern::depthPipeline(Mat frame) {
 	try
 	{
 		descriptor = TDLBP(frame);
+		normalized_descriptor = Mat(descriptor.size(), CV_32FC1);
 		normalize(descriptor, normalized_descriptor, 0, 1, NORM_MINMAX,CV_32FC1);
+		/*for (int h = 0; h < 1; h++)
+			for (int w = 0; w < descriptor.cols; w++) {
+				normalized_descriptor.at<float>(h,w) = descriptor.at<float>(h, w) / (descriptor.rows*descriptor.cols);
+				//cout << (float)normalized_descriptor.at<float>(h, w) << endl;
+			}
+		*/
 		double acum = 0;
 		for (int i = 0; i < 14 * 64 * 4; i++) //put this size in a define
 		{
 			double frequency = normalized_descriptor.at<float>(0,i);
+			//double frequency = descriptor.at<float>(0, i);
 			//cout << i << ": " << frequency << endl;
 			acum += frequency;
 			hist.push_back(frequency*255);
 		}
-		//cout << acum << endl;
+		
+		cout << acum << endl;
 		drawHist(hist, draw);
-		imshow("histograma 3dlbp", draw);
-		//hog.compute(frame, features);
-		//cout << features.size() << endl;
-		/*feature.create(ders.size(), 1, CV_32FC1);
-		for (int i = 0; i<ders.size(); i++)
-		{
-			feature.at<float>(i, 0) = ders.at(i);
-		}*/
+		imshow("histograma 3dlbp", draw);/**/
+		
 	}
 	catch (const std::exception& e)
 	{
 		cout << e.what();
 	}
-	
-	//lbp3d = differenceLBP(frame);
-	//imshow("lbp3d", lbp3d);
-	
 
-	/*histogram = getHistogram(frame);
-	//cout << endl << "Histograma: " << endl;
-	double acum = 0;
-	for (int i = 0; i < 256; i++)
-	{
-		double frequency = histogram[0][i];
-		//cout << i << ": " << frequency << endl;
-		acum += frequency;
-		hist.push_back(frequency * 100);
-	}
-	drawHist(hist, draw);*/
-//	imshow("histograma 3dlbp", draw);
-	//cout << acum << endl;
-	//hist.clear();
 }
 
+//CV32FC1 return
 Mat LocalBinaryPattern::TDLBP(Mat depthImage) {
 	Mat finalDescriptor = calculate3DLBP(depthImage);
-	Mat descriptorDisplay;
-	finalDescriptor.convertTo(descriptorDisplay, CV_8UC1);
-	imshow("3dlbp descriptor",descriptorDisplay);
+	//Mat descriptorDisplay;
+	//finalDescriptor.convertTo(descriptorDisplay, CV_8UC1);
+	//imshow("3dlbp descriptor",descriptorDisplay);
 	return finalDescriptor;
 }
 

@@ -112,8 +112,8 @@ int FaceIdentification::CameraStreaming()
 
 
 	//Record for dataset
-	_Disparity.GrabFrame(&LeftImage, &RightImage);
-	DisparityWriter dw(LeftImage.size(), 5, false);
+	//_Disparity.GrabFrame(&LeftImage, &RightImage);
+	//DisparityWriter dw(LeftImage.size(), 5, false);
 	int option1, option2;
 	option2 = -1;
 
@@ -137,7 +137,7 @@ int FaceIdentification::CameraStreaming()
 			//Get disparity
 			_Disparity.GetDisparity(LeftImage, RightImage, &gDisparityMap, &gDisparityMap_viz);
 
-			if (option2 == RECORD) dw.syncWriteAll(gDisparityMap, LeftImage, RightImage);
+			//if (option2 == RECORD) dw.syncWriteAll(gDisparityMap, LeftImage, RightImage);
 		}
 		
 		//Detect the faces
@@ -212,7 +212,7 @@ int FaceIdentification::CameraStreaming()
 		WaitKeyStatus = waitKey(1);
 		if(WaitKeyStatus == 'q' || WaitKeyStatus == 'Q' || WaitKeyStatus == 27) //Quit
 		{	
-			if (option2 == RECORD) dw.syncRecordAll();
+			//if (option2 == RECORD) dw.syncRecordAll();
 			vector<Rect>().swap(LFaces);
 			destroyAllWindows();
 			testFile.release();
