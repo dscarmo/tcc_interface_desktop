@@ -3,6 +3,7 @@
 #include "FaceDetection.hpp"
 #include "LocalBinaryPattern.hpp"
 #include "VideoCapture.hpp"
+#include "NeuralNetwork.hpp"
 #include <ctime>
 
 using namespace std;
@@ -13,7 +14,7 @@ int main() {
 	//return 0;
 	//captureAndDetect();
 	//int choice;
-	cout << "Stereo Dataset Recorder, Face Identification ou WebCam Test?? (0, 1, ?)";
+	cout << "Stereo Dataset Recorder, Face Identification, WebCam Test or Run from Files?? (0, 1, 2, 3)";
 	cin >> choice;
 
 	if (choice == 1) {
@@ -36,36 +37,18 @@ int main() {
 		return 0;
 	}
 	else if (choice == 0) {
-		DisparityWriter disparityWriter;
-
-		disparityWriter.syncCapture();
+		syncCapture();
 
 		return 0;
-		/*
-		//Disparity Recorder
-		PrintDebug(DEBUG_ENABLED, L"Depth Viewer");
-		int ReturnStatus = -1;
-
-		//Object creation
-		DepthViewer _DepthViewer;
-
-		//Initialises the depth view
-		ReturnStatus = _DepthViewer.Init();
-
-		PrintDebug(DEBUG_ENABLED, L"Exit: Depth Viewer");
-		cout << endl << "Exit: Depth Viewer" << endl << endl;
-
-		if (!ReturnStatus) //check for a valid return
-		{
-			cout << endl << "Press any key to exit!" << endl << endl;
-			_getch();
-		}
-		return 0;*/
+		
 	}
-	else {
+	else if (choice == 2){
 		LocalBinaryPattern lbp;
 		lbp.test();
 
 
+	}
+	else if (choice == 3) {
+		runFromDirectory();
 	}
 }

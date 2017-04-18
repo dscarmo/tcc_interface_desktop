@@ -21,8 +21,15 @@
 #include "FaceIdentification.hpp"
 #include "FaceDetection.hpp"
 #include "LocalBinaryPattern.hpp"
-#define RIGHTMATCH 150 //disparity range starts from 150 so in case of the point being less than 150 it means that the face is not fully covered in the right.
+#include "VideoCapture.hpp"
+#include "NeuralNetwork.hpp"
+#include <iomanip>
+#include <ctime>
 
+#define RIGHTMATCH 150 //disparity range starts from 150 so in case of the point being less than 150 it means that the face is not fully covered in the right.
+#define CAM 0
+#define FILE 1
+#define RECORD 1
 //Constructor
 FaceIdentification::FaceIdentification(void)
 {
@@ -39,7 +46,7 @@ int FaceIdentification::Init()
 
 	if(!_Disparity.InitCamera(true, true)) //Initialise the camera
 	{
-		PrintDebug(DEBUG_ENABLED, L"Camera Initialisation Failed!");
+		Tara::PrintDebug(DEBUG_ENABLED, L"Camera Initialisation Failed!");
 		return 0;
 	}
 
@@ -86,13 +93,13 @@ int FaceIdentification::CameraStreaming()
 	char WaitKeyStatus;
 
 	//Window Creation
-	namedWindow("Left Image", WINDOW_AUTOSIZE);
+	//namedWindow("Left Image", WINDOW_AUTOSIZE);
 	
 	cout << endl << "Press q/Q/Esc on the Image Window to quit the application!" <<endl;
 	cout << endl << "Press r/R on the Image Window to see the right image" << endl;
 	cout << endl << "Press b/B on the Image Window to change the brightness of the camera" << endl << endl;
 
-	cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+	//cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 	string Inputline;
 	bool save = false;
 	int saved = 0;
@@ -103,22 +110,41 @@ int FaceIdentification::CameraStreaming()
 		return 1;
 	}
 
+
+	//Record for dataset
+	_Disparity.GrabFrame(&LeftImage, &RightImage);
+	DisparityWriter dw(LeftImage.size(), 5, false);
+	int option1, option2;
+	option2 = -1;
+
+
+	option1 = CAM;
+
+	VideoCapture left_cap;
+	VideoCapture right_cap;
+	VideoCapture depth_cap;
+	
 	//Estimates the depth of the face using Haarcascade file of OpenCV
 	while(1)
 	{
-		if(!_Disparity.GrabFrame(&LeftImage, &RightImage)) //Reads the frame and returns the rectified image
-		{
-			destroyAllWindows();
-			break;
-		}	
-	
-		//Get disparity
-		_Disparity.GetDisparity(LeftImage, RightImage, &gDisparityMap, &gDisparityMap_viz);
+		if (option1 == CAM) {
+			if (!_Disparity.GrabFrame(&LeftImage, &RightImage)) //Reads the frame and returns the rectified image
+			{
+				destroyAllWindows();
+				break;
+			}
+
+			//Get disparity
+			_Disparity.GetDisparity(LeftImage, RightImage, &gDisparityMap, &gDisparityMap_viz);
+
+			if (option2 == RECORD) dw.syncWriteAll(gDisparityMap, LeftImage, RightImage);
+		}
 		
 		//Detect the faces
 		try
 		{
-			LFaces = faceDetect(LeftImage);
+			DisplayImage = LeftImage.clone();
+			LFaces = faceDetect(DisplayImage);
 		}
 		catch (const std::exception& e)
 		{
@@ -153,7 +179,7 @@ int FaceIdentification::CameraStreaming()
 			if(g_SelectedPoint.x > RIGHTMATCH && DepthValue > 0) //Mark the point selected by the user
 			{				
 				ss << DepthValue / (10 * 2) << " cm\0" ;
-				DisplayText(LeftImage, ss.str(), Point(LFaces[i].x, LFaces[i].y));
+				Tara::DisplayText(DisplayImage, ss.str(), Point(LFaces[i].x, LFaces[i].y));
 				ss.str(string());
 			}
 
@@ -163,8 +189,12 @@ int FaceIdentification::CameraStreaming()
 
 			if (save) {
 				save = false;
-				imwrite("Faces\\" + to_string(saved++) + ".jpg", LeftImage(LFaces[i]));
-				imwrite("Faces\\" + to_string(saved++) + "disp.jpg", gDisparityMap(LFaces[i]));
+				struct tm newtime;
+				time_t now = time(0);
+				localtime_s(&newtime, &now);
+				string date = to_string(newtime.tm_hour) + to_string(newtime.tm_min) + to_string(newtime.tm_sec);
+				imwrite("Faces\\"  + date + ".jpg", LeftImage(LFaces[i]));
+				imwrite("Faces\\"  + date + "depth.jpg", gDisparityMap(LFaces[i]));
 				testFile << "test_disp" << gDisparityMap(LFaces[i]);
 			}
 		}
@@ -179,9 +209,10 @@ int FaceIdentification::CameraStreaming()
 		setMouseCallback("retanguloFace", onMouse, 0);
 
 		//waits for the Key input
-		WaitKeyStatus = waitKey(10);
+		WaitKeyStatus = waitKey(1);
 		if(WaitKeyStatus == 'q' || WaitKeyStatus == 'Q' || WaitKeyStatus == 27) //Quit
 		{	
+			if (option2 == RECORD) dw.syncRecordAll();
 			vector<Rect>().swap(LFaces);
 			destroyAllWindows();
 			testFile.release();

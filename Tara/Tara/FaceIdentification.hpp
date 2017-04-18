@@ -17,8 +17,6 @@
 #include "Tara.h"
 #include "LocalBinaryPattern.hpp"
 
-using namespace cv;
-using namespace Tara;
 
 class FaceIdentification
 {
@@ -32,7 +30,7 @@ public:
 			
 private:
 	//Image
-	Mat LeftImage;
+	cv::Mat LeftImage;
 
 	LocalBinaryPattern lbp;
 
@@ -40,7 +38,7 @@ private:
 	//vector<Rect> DetectFace(Mat img);
 
 	//Unscaling the point to the actual image size for the lower resolutions
-	Point unscalePoint(Point Pt, Size CurrentSize, Size TargetSize);
+	cv::Point unscalePoint(cv::Point Pt, cv::Size CurrentSize, cv::Size TargetSize);
 
 	//Streams the input from the camera 
 	int CameraStreaming(); 
@@ -48,5 +46,5 @@ private:
 	stringstream ss;  //To convert int to text
 		
 	//Object creation
-	Disparity _Disparity;
+	Tara::Disparity _Disparity;
 };

@@ -24,6 +24,13 @@ private:
 	cv::Mat fliped;
 	cv::Mat asyncFlip[3];
 
+	cv::Mat intleft;
+	cv::Mat intright;
+	cv::Mat intdepth;
+	std::vector<cv::Mat> lefts;
+	std::vector<cv::Mat> rights;
+	std::vector<cv::Mat> depths;
+
 public:
 	//Async write
 	
@@ -35,14 +42,19 @@ public:
 		size = sizee;
 		FPS = FPSS;
 		revert = revertt;
-		disparityRecorder = cv::VideoWriter("drone_disparity.avi", CV_FOURCC('I', 'Y', 'U', 'V'), 10, cv::Size(802,480), true);
-		leftRecorder = cv::VideoWriter("drone_video_left.avi", CV_FOURCC('I', 'Y', 'U', 'V'), 10, cv::Size(752, 480), false);
-		rightRecorder = cv::VideoWriter("drone_video_right.avi", CV_FOURCC('I', 'Y', 'U', 'V'), 10, cv::Size(752, 480), false);
+		disparityRecorder = cv::VideoWriter("drone_disparity.avi", CV_FOURCC('I', 'Y', 'U', 'V'), 10, sizee, true);
+		leftRecorder = cv::VideoWriter("drone_video_left.avi", CV_FOURCC('I', 'Y', 'U', 'V'), 10, sizee, false);
+		rightRecorder = cv::VideoWriter("drone_video_right.avi", CV_FOURCC('I', 'Y', 'U', 'V'), 10, sizee, false);
 		fliped = cv::Mat(sizee.height, sizee.width, CV_8UC3);
 		setupDone = true;
 	}
-
+	void DisparityWriter::setSize(cv::Size insize) {
+		size = insize;
+	}
 	void syncWriteAll(cv::Mat disparity, cv::Mat left, cv::Mat right);
+	void syncRecordAll();
 
-	int syncCapture();
 };
+
+
+int syncCapture();

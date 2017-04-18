@@ -206,7 +206,7 @@ void LocalBinaryPattern::grayLBPpipeline(Mat frame) {
 	}
 	drawHist(hist, draw);
 	imshow("histograma lbp", draw);
-	cout << acum << endl;
+	//cout << acum << endl;
 	hist.clear();
 }
 

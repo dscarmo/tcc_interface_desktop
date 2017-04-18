@@ -95,7 +95,6 @@ vector<Rect> faceDetect(Mat frame)
 	std::vector<Rect> faces;
 	Mat frame_gray;
 	equalizeHist(frame, frame_gray);
-
 	//-- Detect faces
 	face_cascade.detectMultiScale(frame_gray, faces);
 

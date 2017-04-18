@@ -7,8 +7,30 @@
 using namespace std;
 using namespace cv;
 
+
+
+//Writes from tara capture sync
+void DisparityWriter::syncWriteAll(Mat disparity, Mat left, Mat right) {
+		depths.push_back(disparity);
+		lefts.push_back(left);
+		rights.push_back(right);
+}
+
+//Records from tara capture
+void DisparityWriter::syncRecordAll() {
+	cout << "Gravando captura no HD..." << endl;
+	for (int i = 0; i < lefts.size(); i++) {
+		disparityRecorder.write(depths[i]);
+		leftRecorder.write(lefts[i]);
+		rightRecorder.write(rights[i]);
+	}
+	cout << "done" << endl;
+	
+}
+
 //Captures only gray without Tara capture
-int DisparityWriter::syncCapture() {
+//Doesnt uses class variables
+int syncCapture() {
 	Mat channels[3];
 	vector<Mat> video1;
 	vector<Mat> video2;
@@ -17,9 +39,9 @@ int DisparityWriter::syncCapture() {
 	int howlong = 0;
 
 	bool revert;
-	double FPS = 15;
+	double FPS = 30;
 
-	VideoCapture vcap(0);
+	VideoCapture vcap(1);
 	if (!vcap.isOpened()) {
 		cout << "Error opening video stream or file" << endl;
 		return -1;
@@ -34,7 +56,7 @@ int DisparityWriter::syncCapture() {
 	//VideoWriter recorder("drone_video.avi", -1, FPS, Size(frame_width, frame_height), false);
 	VideoWriter recorder1("drone_video_left.avi", CV_FOURCC('I', 'Y', 'U', 'V'), FPS, Size(frame_width, frame_height), false);
 	VideoWriter recorder2("drone_video_right.avi", CV_FOURCC('I', 'Y', 'U', 'V'), FPS, Size(frame_width, frame_height), false);
-	
+
 	//typedef std::chrono::high_resolution_clock Clock;
 	//time_t t1 = time(0);
 	cout << "How long should be recorded? Aproximadamente 1 GB de RAM por minuto necessário (segundos)" << endl;
@@ -55,13 +77,13 @@ int DisparityWriter::syncCapture() {
 		revert = false;
 
 	cout << "Gravando..." << endl;
-	for (int l = 0;l < howlong*FPS; l++) {
+	for (int l = 0; l < howlong*FPS; l++) {
 		vcap >> frame;
 		split(frame, channels);
 		video1.push_back(channels[1].clone());
 		video2.push_back(channels[2].clone());
 		framecount++;
-		
+
 		if (l % (int)FPS == 0) {
 			cout << l / FPS << endl;
 		}
@@ -98,6 +120,8 @@ int DisparityWriter::syncCapture() {
 	return 0;
 }
 
+
+
 void getSize(int* width, int* height) {
 	VideoCapture vcap(0);
 	*width = vcap.get(CV_CAP_PROP_FRAME_WIDTH);
@@ -108,26 +132,6 @@ void getSize(int* width, int* height) {
 	imshow("frame de teste", test_frame);
 	waitKey(0);
 	vcap.release();
-}
-
-//Writes from tara capture sync
-void DisparityWriter::syncWriteAll(Mat disparity, Mat left, Mat right) {
-	if (revert) {
-		flip(disparity, fliped, 0);
-		disparityRecorder.write(fliped);
-
-		flip(left, fliped, 0);
-		leftRecorder.write(fliped);
-
-		flip(right, fliped, 0);
-		rightRecorder.write(fliped);
-	}
-	else
-	{
-		disparityRecorder.write(disparity);
-		leftRecorder.write(left);
-		rightRecorder.write(right);
-	}
 }
 
 /*
