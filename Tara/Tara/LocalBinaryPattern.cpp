@@ -1,6 +1,7 @@
+#include <iostream>
 #include "stdafx.h"
 #include "LocalBinaryPattern.hpp"
-#include <iostream>
+
 
 using namespace std;
 using namespace cv;

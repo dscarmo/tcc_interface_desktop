@@ -1,42 +1,48 @@
 #include "stdafx.h"
 #include <dirent.h>
-#include <iostream>
-#include "NeuralNetwork.hpp"
-#include "LocalBinaryPattern.hpp"
 #include "multipleSmallNetworks.hpp"
 #include "Utils.hpp"
 
 using namespace std;
 using namespace cv;
-LocalBinaryPattern global_lbp;
 
-int testMSN() {
-	Person(1, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth");
+Person::Person(int id, string name, const char* grayPath, const char * depthPath){
+	//Put arguments and pushback faces
+	personID = id;
+	personName = name;
+	Mat readGray;
+	Mat depthGray;
+
+	//Fill vector gray
+	//Fill vector depth
+	fillVector(grayFaces, grayPath);
+	fillVector(depthFaces, depthPath);
+
+	for (int i = 0; i < grayFaces.size(); i++) {
+		imshow("gray faces", grayFaces[i]);
+	}
+
+	for (int j = 0; j < depthFaces.size(); j++) {
+		imshow("depthFaces", depthFaces[j]);
+	}
+
 }
 
-int runFromDirectory() {
-	//New classe incendio interno
 
-	//Generic Dataset run
-	cout << "Rodando apartir de arquivos de imagens..." << endl;
-	//int contador = 0;
-
-	Mat image;
-	//int resultado;
+void Person::fillVector(vector<Mat> faces, const char* input_dir) {
 	vector<String> all_files;
-	
+
 	//Onde ta as imagem
-	
+
 	//const char* input_dir = "Faces";
 	//const char* input_dir = "Faces\\diedre_night";
-	const char* input_dir = "Faces\\diedre\\gray";
+	//const char* input_dir = "Faces\\";
 
 	//Pointer to input directory
 	DIR *dir_ptr = opendir(input_dir);
 	if (dir_ptr == NULL) {
 		cout << "DIR NULL POINTER!!! Insert correct hardcoded dataset directory" << endl;
 		system("PAUSE");
-		return 1;
 	}
 
 	while (true) {
@@ -56,7 +62,9 @@ int runFromDirectory() {
 	vector<String> image_files;
 	for (String file : all_files) {
 		if (ends_with(".png", file) || ends_with(".jpg", file) || ends_with(".jpeg", file)) {
-			image_files.push_back(file);
+			ostringstream oss;
+			oss << input_dir << "\\" << file;
+			faces.push_back(imread(oss.str()));
 		}
 	}
 	// ----------------------------------------------- 
@@ -64,27 +72,21 @@ int runFromDirectory() {
 	//Main loop
 	cout << input_dir << "diretorio sendo processado" << endl;
 
-	//Primeira imagem vira background
-	for (String file : image_files) {
-		cout << input_dir + file << endl;
-		ostringstream oss;
-		oss << input_dir << "\\" << file;
-		image = imread(oss.str(), 0);
+	for (Mat face : faces) {
+		
 
-		if (!image.empty())
+		if (!face.empty())
 			cout << "Imagem lida com sucesso." << endl;
 		else {
 			cout << "Erro na leitura de imagem, continuando." << endl;
 			continue;
 		}
 
-		imshow("hd image", image);
-
-		cout << "processando: " << file << endl;
-		global_lbp.grayLBPpipeline(image);
-		global_lbp.depthPipeline(image);
-		waitKey(0);
+		waitKey(1);
 	}
 
-	return 0;
+}
+
+MSN::MSN() {
+	people.push_back(Person(1, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth"));
 }

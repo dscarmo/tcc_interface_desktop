@@ -1,10 +1,11 @@
 #include "stdafx.h"
+#include <ctime>
 #include "FaceIdentification.hpp"
 #include "FaceDetection.hpp"
 #include "LocalBinaryPattern.hpp"
 #include "VideoCapture.hpp"
 #include "NeuralNetwork.hpp"
-#include <ctime>
+
 
 using namespace std;
 using namespace cv;
@@ -32,7 +33,7 @@ int main() {
 		if (!ReturnStatus) //check for a valid return
 		{
 			cout << endl << "Press any key to exit!" << endl << endl;
-			_getch();
+			system("PAUSE");
 		}
 		return 0;
 	}
@@ -49,6 +50,7 @@ int main() {
 
 	}
 	else if (choice == 3) {
+		testMSN();
 		runFromDirectory();
 	}
 }

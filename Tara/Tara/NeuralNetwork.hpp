@@ -3,4 +3,5 @@
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/ml/ml.hpp"
 
+int testMSN();
 int runFromDirectory();

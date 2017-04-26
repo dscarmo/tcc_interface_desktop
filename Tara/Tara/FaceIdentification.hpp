@@ -31,7 +31,6 @@ public:
 private:
 	//Image
 	cv::Mat LeftImage;
-
 	LocalBinaryPattern lbp;
 
 	//Detects the faces in the scene
