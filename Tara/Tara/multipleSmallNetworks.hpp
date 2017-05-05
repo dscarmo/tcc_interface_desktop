@@ -13,13 +13,14 @@
 
 class Person {
 private:
+	enum grayOrDepth { gray, depth};
 	int personID;
 	std::string personName;
 	std::vector<cv::Mat> grayFaces;
 	std::vector<cv::Mat> depthFaces;
-	cv::Ptr<ml::ANN_MLP> graynn;
-	cv::Ptr<ml::ANN_MLP> depthnn;
-	void fillVector(std::vector<cv::Mat> faces, const char* path);
+	cv::Ptr<cv::ml::ANN_MLP> graynn;
+	cv::Ptr<cv::ml::ANN_MLP> depthnn;
+	void fillVector(int gord, const char* path);
 
 public:
 	//constructor
@@ -38,14 +39,7 @@ public:
 	void loadDepthNN();
 
 	//predict with input (runs both cnns predicts and weigth add returns result)
-	double predict(Mat input);
-
-	//Trains local grayNN in gray images
-	void trainGray();
-
-	//Trains local depthNN in depth images 
-	void trainDepth();
-
+	double predict(cv::Mat input);
 
 };
 

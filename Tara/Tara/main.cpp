@@ -51,6 +51,6 @@ int main() {
 	}
 	else if (choice == 3) {
 		testMSN();
-		runFromDirectory();
+		//runFromDirectory();
 	}
 }

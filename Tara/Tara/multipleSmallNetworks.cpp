@@ -15,21 +15,43 @@ Person::Person(int id, string name, const char* grayPath, const char * depthPath
 
 	//Fill vector gray
 	//Fill vector depth
-	fillVector(grayFaces, grayPath);
-	fillVector(depthFaces, depthPath);
+	fillVector(gray, grayPath);
+	fillVector(depth, depthPath);
 
+	//Debug
 	for (int i = 0; i < grayFaces.size(); i++) {
 		imshow("gray faces", grayFaces[i]);
+		waitKey(100);
 	}
-
 	for (int j = 0; j < depthFaces.size(); j++) {
 		imshow("depthFaces", depthFaces[j]);
+		waitKey(100);
 	}
 
 }
 
+void Person::trainGrayNN() {
+	int neuronios = 5;
+	Mat layers = Mat(3, 1, CV_32S);
+	layers.row(0) = Scalar(256);
+	layers.row(1) = Scalar(neuronios);
+	layers.row(2) = Scalar(1);
+	//neural
+	graynn = ml::ANN_MLP::create();
+	graynn -> setLayerSizes(layers);
+	graynn -> setTrainMethod(ml::ANN_MLP::BACKPROP);
+	graynn -> setTermCriteria(TermCriteria(cv::TermCriteria::COUNT | cv::TermCriteria::EPS, 3000, 0.000001f));
+	graynn -> setActivationFunction(cv::ml::ANN_MLP::SIGMOID_SYM, 1, 1);
+	graynn -> setBackpropWeightScale(0.1f);
+	graynn -> setBackpropMomentumScale(0.1f);
 
-void Person::fillVector(vector<Mat> faces, const char* input_dir) {
+	//Positivos
+	for (Mat positivo : grayFaces) {
+		//this is confusing
+	}
+}
+
+void Person::fillVector(int gord, const char* input_dir) {
 	vector<String> all_files;
 
 	//Onde ta as imagem
@@ -59,31 +81,26 @@ void Person::fillVector(vector<Mat> faces, const char* input_dir) {
 	//Sort file names 
 	sort(all_files.begin(), all_files.end());
 
+
+	cout << input_dir << " diretorio sendo processado" << endl;
+
 	vector<String> image_files;
 	for (String file : all_files) {
 		if (ends_with(".png", file) || ends_with(".jpg", file) || ends_with(".jpeg", file)) {
 			ostringstream oss;
 			oss << input_dir << "\\" << file;
-			faces.push_back(imread(oss.str()));
+			Mat image = imread(oss.str());
+			if (!image.empty())
+				cout << "Imagem lida com sucesso." << endl;
+			else {
+				cout << "Erro na leitura de imagem, continuando." << endl;
+				continue;
+			}
+			if (gord == gray) grayFaces.push_back(image.clone());
+			else if (gord == depth) depthFaces.push_back(image.clone());
 		}
 	}
-	// ----------------------------------------------- 
 
-	//Main loop
-	cout << input_dir << "diretorio sendo processado" << endl;
-
-	for (Mat face : faces) {
-		
-
-		if (!face.empty())
-			cout << "Imagem lida com sucesso." << endl;
-		else {
-			cout << "Erro na leitura de imagem, continuando." << endl;
-			continue;
-		}
-
-		waitKey(1);
-	}
 
 }
 
