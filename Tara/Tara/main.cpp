@@ -4,8 +4,8 @@
 #include "FaceDetection.hpp"
 #include "LocalBinaryPattern.hpp"
 #include "VideoCapture.hpp"
-#include "NeuralNetwork.hpp"
-
+//#include "NeuralNetwork.hpp"
+#include "multipleSmallNetworks.hpp"
 
 using namespace std;
 using namespace cv;
@@ -50,7 +50,9 @@ int main() {
 
 	}
 	else if (choice == 3) {
-		testMSN();
+		MSN *msn = new MSN();
+		
+		//testMSN();
 		//runFromDirectory();
 	}
 }

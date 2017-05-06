@@ -27,7 +27,7 @@ private:
 	double** LocalBinaryPattern::getHistogram(cv::Mat lbpImage);
 public: 
 	int LocalBinaryPattern::test();
-	void LocalBinaryPattern::grayLBPpipeline(cv::Mat frame);
+	cv::Mat LocalBinaryPattern::grayLBPpipeline(cv::Mat frame);
 	void LocalBinaryPattern::depthPipeline(cv::Mat frame);
 
 

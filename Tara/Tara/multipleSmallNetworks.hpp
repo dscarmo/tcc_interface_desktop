@@ -3,7 +3,10 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/ml/ml.hpp"
+#include "LocalBinaryPattern.hpp"
 
+#define CREATION_ERROR 1
+#define TREINO_COMPLETO 0
 //personID
 //personName
 //gray faces
@@ -15,19 +18,26 @@ class Person {
 private:
 	enum grayOrDepth { gray, depth};
 	int personID;
-	std::string personName;
-	std::vector<cv::Mat> grayFaces;
-	std::vector<cv::Mat> depthFaces;
+	std::string gray_xml_path;
+	std::string depth_xml_path;
 	cv::Ptr<cv::ml::ANN_MLP> graynn;
 	cv::Ptr<cv::ml::ANN_MLP> depthnn;
 	void fillVector(int gord, const char* path);
 
+	//Test, will be in msn
+	LocalBinaryPattern test_lbp;
+
 public:
+
+	std::string personName;
+	std::vector<cv::Mat> grayFaces;
+	std::vector<cv::Mat> depthFaces;
+
 	//constructor
 	Person(int id, std::string name, const char* grayPath, const char* depthPath);
 	
 	//Train graynn on grayfaces
-	void trainGrayNN();
+	int trainGrayNN(int neuronios);
 	
 	//Train depthnn on depthfaces
 	void trainDepthNN();
@@ -46,7 +56,7 @@ public:
 class MSN {
 	//Dataset class (person) vector
 private:
-	std::vector<Person> people;
+	std::vector<Person *> people;
 public:
 	//identificate (run all Persons predicts (parallel) sync and return better result
 	//returns person name string

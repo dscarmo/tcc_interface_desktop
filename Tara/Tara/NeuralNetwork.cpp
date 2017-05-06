@@ -10,17 +10,7 @@ using namespace std;
 using namespace cv;
 LocalBinaryPattern global_lbp;
 
-int testMSN() {
-	Person diedre(1, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth");
-	Person gin(2, "gin", "Faces\\gin\\gray", "Faces\\gin\\depth");
-	Person raul(3, "raul", "Faces\\raul\\gray", "Faces\\raul\\depth");
-	Person nicole(4, "nicole", "Faces\\nicole\\gray", "Faces\\nicole\\depth");
-	Person pompilio(5, "pompilio", "Faces\\pompilio\\gray", "Faces\\pompilio\\depth");
-	Person rodolfo(6, "rodolfo", "Faces\\rodolfo\\gray", "Faces\\rodolfo\\depth");
-
-	//diedre.trainGrayNN();
-}
-
+//Test
 int runFromDirectory() {
 	//New classe incendio interno
 

@@ -12,6 +12,8 @@ Person::Person(int id, string name, const char* grayPath, const char * depthPath
 	personName = name;
 	Mat readGray;
 	Mat depthGray;
+	gray_xml_path = "xml\\gray_neural_" + personName + ".xml";
+	depth_xml_path = "xml\\depth_neural_" + personName + ".xml";
 
 	//Fill vector gray
 	//Fill vector depth
@@ -21,17 +23,16 @@ Person::Person(int id, string name, const char* grayPath, const char * depthPath
 	//Debug
 	for (int i = 0; i < grayFaces.size(); i++) {
 		imshow("gray faces", grayFaces[i]);
-		waitKey(100);
+		waitKey(1);
 	}
 	for (int j = 0; j < depthFaces.size(); j++) {
 		imshow("depthFaces", depthFaces[j]);
-		waitKey(100);
+		waitKey(1);
 	}
 
 }
 
-void Person::trainGrayNN() {
-	int neuronios = 5;
+int Person::trainGrayNN(int neuronios) {
 	Mat layers = Mat(3, 1, CV_32S);
 	layers.row(0) = Scalar(256);
 	layers.row(1) = Scalar(neuronios);
@@ -45,10 +46,45 @@ void Person::trainGrayNN() {
 	graynn -> setBackpropWeightScale(0.1f);
 	graynn -> setBackpropMomentumScale(0.1f);
 
+	Mat samples(Size(256, 27 + 27), CV_32F); //Positivos mais negativos
+	Mat responses(Size(1, 27 + 27), CV_32F);
+	int contador = 0;
+
 	//Positivos
 	for (Mat positivo : grayFaces) {
 		//this is confusing
+		Mat trainingHist = test_lbp.grayLBPpipeline(positivo);
+		trainingHist.row(0).copyTo(samples.row(contador));
+		responses.at<float>(Point(0, contador)) = 1;
+		contador++;
 	}
+
+	//Negativos
+	for (Mat negativo : depthFaces) { //Must get a negative dataset for faces
+		//this is confusing
+		Mat trainingHist = test_lbp.grayLBPpipeline(negativo);
+		trainingHist.row(0).copyTo(samples.row(contador));
+		responses.at<float>(Point(0, contador)) = -1;
+		contador++;
+	}
+
+	if (!graynn->train(samples, ml::ROW_SAMPLE, responses))
+		return CREATION_ERROR;
+
+	//cout << "Treino concluído" << endl;
+	graynn -> save(gray_xml_path);
+	cout << "rede neural de " + personName + " treinada..." << endl;
+	return TREINO_COMPLETO;
+}
+
+double Person::predict(Mat input) {
+	Mat feature(Size(256, 1), CV_32F), output;
+	Mat input_lbp = test_lbp.grayLBPpipeline(input);
+	input_lbp.row(0).copyTo(feature.row(0));
+
+	graynn->predict(feature, output);
+	cout << output.at<float>(0, 0) << endl;
+	return (double)output.at<float>(0, 0);
 }
 
 void Person::fillVector(int gord, const char* input_dir) {
@@ -105,5 +141,23 @@ void Person::fillVector(int gord, const char* input_dir) {
 }
 
 MSN::MSN() {
-	people.push_back(Person(1, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth"));
+	people.push_back(new Person(1, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth"));
+	people.push_back(new Person(2, "gin", "Faces\\gin\\gray", "Faces\\gin\\depth"));
+	people.push_back(new Person(3, "raul", "Faces\\raul\\gray", "Faces\\raul\\depth"));
+	people.push_back(new Person(4, "nicole", "Faces\\nicole\\gray", "Faces\\nicole\\depth"));
+	people.push_back(new Person(5, "pompilio", "Faces\\pompilio\\gray", "Faces\\pompilio\\depth"));
+	people.push_back(new Person(6, "rodolfo", "Faces\\rodolfo\\gray", "Faces\\rodolfo\\depth"));
+
+	//Test
+	people[0] -> trainGrayNN(5);
+	for (Person* person : people) {
+		cout << "predicting gray of " + person->personName + " in diedre gray network";
+		for (Mat face : person->grayFaces)
+			people[0]->predict(face);
+
+		cout << "predicting depth of " + person->personName + " in diedre grau network";
+		for (Mat face : person->depthFaces)
+			people[0]->predict(face);
+	}
+
 }

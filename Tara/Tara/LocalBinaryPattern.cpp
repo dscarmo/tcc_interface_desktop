@@ -185,28 +185,43 @@ void LocalBinaryPattern::webCamTest() {
 }
 
 //Gets LBP values and histogram of provided ROI for LBP
-void LocalBinaryPattern::grayLBPpipeline(Mat frame) {
-	double** histogram;
-	vector<double> hist;
-	Mat lbp;
-	Mat3b draw;
+Mat LocalBinaryPattern::grayLBPpipeline(Mat frame) {
+	double** histograma;
+	vector<double> hist; //container do vetor de debug
+	Mat lbp; //imagem lbp
+	Mat3b draw; //container do draw
 	imshow("frame", frame);
 	lbp = grayImageLBP(frame);
 	imshow("lbp", lbp);
-	histogram = getHistogram(lbp);
-	//cout << endl << "Histograma: " << endl;
+	histograma = getHistogram(lbp);
+	
+	//Debug draw
 	double acum = 0;
 	for (int i = 0; i < 256; i++)
 	{
-		double frequency = histogram[0][i];
+		double frequency = histograma[0][i];
 		//cout << i << ": " << frequency << endl;
 		acum += frequency;
 		hist.push_back(frequency*255);
 	}
 	drawHist(hist, draw);
 	imshow("histograma lbp", draw);
-	cout << acum << endl;
+	//cout << acum << endl;
 	hist.clear();
+
+	Mat histograma_temp;
+	histograma_temp = Mat::zeros(Size(1, 256), CV_32F);
+	for (unsigned int i = 0; i < 256; i++)
+		histograma_temp.at<float>(i, 0) = histograma[0][i];
+
+	Mat histograma_mat = histograma_temp.clone();
+	delete[] histograma[0];
+	delete[] histograma;
+
+	Mat transposta;
+	transpose(histograma_mat, transposta);
+
+	return transposta;
 }
 
 //Applies depth methods
