@@ -8,17 +8,24 @@ using namespace cv;
 
 Person::Person(int id, string name, const char* grayPath, const char * depthPath){
 	//Put arguments and pushback faces
+	trained = false;
 	personID = id;
 	personName = name;
 	Mat readGray;
 	Mat depthGray;
 	gray_xml_path = "xml\\gray_neural_" + personName + ".xml";
 	depth_xml_path = "xml\\depth_neural_" + personName + ".xml";
+	negativos_path = "Faces\\negativos\\gray";
+	validation_path = "Faces\\validation\\gray";
 
 	//Fill vector gray
 	//Fill vector depth
-	fillVector(gray, grayPath);
-	fillVector(depth, depthPath);
+	if (id == 999) fillVector(validation, validation_path);
+	else {
+		fillVector(gray, grayPath);
+		fillVector(depth, depthPath);
+		fillVector(negativo, negativos_path);
+	}
 
 	//Debug
 	for (int i = 0; i < grayFaces.size(); i++) {
@@ -27,6 +34,14 @@ Person::Person(int id, string name, const char* grayPath, const char * depthPath
 	}
 	for (int j = 0; j < depthFaces.size(); j++) {
 		imshow("depthFaces", depthFaces[j]);
+		waitKey(1);
+	}
+	for (int j = 0; j < negativos.size(); j++) {
+		imshow("negativos", negativos[j]);
+		waitKey(1);
+	}
+	for (int j = 0; j < validation_imgs.size(); j++) {
+		imshow("validation", validation_imgs[j]);
 		waitKey(1);
 	}
 
@@ -40,29 +55,34 @@ int Person::trainGrayNN(int neuronios) {
 	//neural
 	graynn = ml::ANN_MLP::create();
 	graynn -> setLayerSizes(layers);
-	graynn -> setTrainMethod(ml::ANN_MLP::BACKPROP);
-	graynn -> setTermCriteria(TermCriteria(cv::TermCriteria::COUNT | cv::TermCriteria::EPS, 3000, 0.000001f));
-	graynn -> setActivationFunction(cv::ml::ANN_MLP::SIGMOID_SYM, 1, 1);
-	graynn -> setBackpropWeightScale(0.1f);
-	graynn -> setBackpropMomentumScale(0.1f);
+	graynn -> setActivationFunction(ml::ANN_MLP::SIGMOID_SYM, 0, 0);
+	graynn -> setTermCriteria(TermCriteria(TermCriteria::MAX_ITER + TermCriteria::EPS, 300, 0.0001));
+	graynn -> setTrainMethod(ml::ANN_MLP::BACKPROP, 0.0001);
+	//graynn -> setBackpropWeightScale(0.1f);
+	//graynn -> setBackpropMomentumScale(0.1f);
 
-	Mat samples(Size(256, 27 + 27), CV_32F); //Positivos mais negativos
-	Mat responses(Size(1, 27 + 27), CV_32F);
+	Mat samples(Size(256, grayFaces.size() + negativos.size()), CV_32F); //Positivos mais negativos
+	Mat responses(Size(1, grayFaces.size() + negativos.size()), CV_32F);
 	int contador = 0;
 
 	//Positivos
 	for (Mat positivo : grayFaces) {
 		//this is confusing
-		Mat trainingHist = test_lbp.grayLBPpipeline(positivo);
+		Rect roi(20, 20, positivo.size().width - 40, positivo.size().height - 40);
+		//imshow("positivo sendo treinado", positivo(roi)); waitKey(0);
+		Mat trainingHist = test_lbp.grayLBPpipeline(positivo(roi));
 		trainingHist.row(0).copyTo(samples.row(contador));
 		responses.at<float>(Point(0, contador)) = 1;
 		contador++;
 	}
 
 	//Negativos
-	for (Mat negativo : depthFaces) { //Must get a negative dataset for faces
+	//take one face from each other
+	for (Mat negativo : negativos) { //Must get a negative dataset for faces
 		//this is confusing
-		Mat trainingHist = test_lbp.grayLBPpipeline(negativo);
+		Rect roi(20, 20, negativo.size().width - 40, negativo.size().height - 40);
+
+		Mat trainingHist = test_lbp.grayLBPpipeline(negativo(roi));
 		trainingHist.row(0).copyTo(samples.row(contador));
 		responses.at<float>(Point(0, contador)) = -1;
 		contador++;
@@ -71,6 +91,7 @@ int Person::trainGrayNN(int neuronios) {
 	if (!graynn->train(samples, ml::ROW_SAMPLE, responses))
 		return CREATION_ERROR;
 
+	trained = true;
 	//cout << "Treino concluído" << endl;
 	graynn -> save(gray_xml_path);
 	cout << "rede neural de " + personName + " treinada..." << endl;
@@ -125,7 +146,8 @@ void Person::fillVector(int gord, const char* input_dir) {
 		if (ends_with(".png", file) || ends_with(".jpg", file) || ends_with(".jpeg", file)) {
 			ostringstream oss;
 			oss << input_dir << "\\" << file;
-			Mat image = imread(oss.str());
+			Mat image;
+			resize(imread(oss.str()),image, Size(100,100));
 			if (!image.empty())
 				cout << "Imagem lida com sucesso." << endl;
 			else {
@@ -134,6 +156,8 @@ void Person::fillVector(int gord, const char* input_dir) {
 			}
 			if (gord == gray) grayFaces.push_back(image.clone());
 			else if (gord == depth) depthFaces.push_back(image.clone());
+			else if (gord == negativo) negativos.push_back(image.clone());
+			else if (gord == validation) validation_imgs.push_back(image.clone());
 		}
 	}
 
@@ -147,17 +171,49 @@ MSN::MSN() {
 	people.push_back(new Person(4, "nicole", "Faces\\nicole\\gray", "Faces\\nicole\\depth"));
 	people.push_back(new Person(5, "pompilio", "Faces\\pompilio\\gray", "Faces\\pompilio\\depth"));
 	people.push_back(new Person(6, "rodolfo", "Faces\\rodolfo\\gray", "Faces\\rodolfo\\depth"));
+	people.push_back(new Person(999, "validation", "Faces\\rodolfo\\gray", "Faces\\rodolfo\\depth"));
 
 	//Test
-	people[0] -> trainGrayNN(5);
+	for (Person* person : people) {
+		if (person->personName == "validation") continue;
+		person->trainGrayNN(5);
+	}
+
 	for (Person* person : people) {
 		cout << "predicting gray of " + person->personName + " in diedre gray network";
-		for (Mat face : person->grayFaces)
-			people[0]->predict(face);
+		int max = 0;
+		for (Mat face : person->grayFaces) {
+			Rect roi(20,20, face.size().width - 40, face.size().height - 40);
+			people[0]->predict(face(roi));
+			imshow("predicting isso aqui",face(roi));
+			waitKey(0);
 
-		cout << "predicting depth of " + person->personName + " in diedre grau network";
-		for (Mat face : person->depthFaces)
-			people[0]->predict(face);
+		}
+
 	}
+	//Todo crop
+	for (Mat validation : people[6]->validation_imgs) {
+		imshow("validation", validation);
+		identificate(validation);
+		waitKey(0);
+	}
+	cout << "para";
+
+
+
+}
+
+string MSN::identificate(cv::Mat input) {
+	for (Person* person : people) 
+	{
+		if (person->trained) 
+		{
+			cout << person->personName + " saida da NN: " + to_string(person->predict(input));
+		}
+		else cout << person -> personName + " não treinado.";
+
+		// TODO Armazenar saidas e ordernar por person mais alta
+	}
+	return "lol";
 
 }

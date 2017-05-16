@@ -22,7 +22,7 @@
 #include "FaceDetection.hpp"
 #include "LocalBinaryPattern.hpp"
 #include "VideoCapture.hpp"
-#include "NeuralNetwork.hpp"
+#include "multipleSmallNetworks.hpp"
 #include <iomanip>
 #include <ctime>
 
@@ -124,6 +124,8 @@ int FaceIdentification::CameraStreaming()
 	VideoCapture right_cap;
 	VideoCapture depth_cap;
 	
+	MSN *msn = new MSN();
+
 	//Estimates the depth of the face using Haarcascade file of OpenCV
 	while(1)
 	{
@@ -145,6 +147,14 @@ int FaceIdentification::CameraStreaming()
 		{
 			DisplayImage = LeftImage.clone();
 			LFaces = faceDetect(DisplayImage);
+			if(LFaces.size() > 0)
+				if (LFaces[0].width >= 100 && LFaces[0].height > 100) {
+					Rect roi(20, 20, 80, 80);
+					Mat nnInput = (DisplayImage(LFaces[0]));
+					msn->identificate(nnInput);
+					imshow("passando isso pra nn", nnInput);
+					waitKey(0);
+				}
 		}
 		catch (const std::exception& e)
 		{

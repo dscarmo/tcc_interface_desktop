@@ -39,9 +39,6 @@
     <ClInclude Include="TDLBP.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NeuralNetwork.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="multipleSmallNetworks.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,9 +66,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TDLBP.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="NeuralNetwork.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="multipleSmallNetworks.cpp">

@@ -16,10 +16,12 @@
 
 class Person {
 private:
-	enum grayOrDepth { gray, depth};
+	enum grayOrDepth { gray, depth, negativo, validation};
 	int personID;
 	std::string gray_xml_path;
 	std::string depth_xml_path;
+	const char * negativos_path;
+	const char * validation_path;
 	cv::Ptr<cv::ml::ANN_MLP> graynn;
 	cv::Ptr<cv::ml::ANN_MLP> depthnn;
 	void fillVector(int gord, const char* path);
@@ -29,9 +31,12 @@ private:
 
 public:
 
+	bool trained;
 	std::string personName;
 	std::vector<cv::Mat> grayFaces;
 	std::vector<cv::Mat> depthFaces;
+	std::vector<cv::Mat> negativos;
+	std::vector<cv::Mat> validation_imgs;
 
 	//constructor
 	Person(int id, std::string name, const char* grayPath, const char* depthPath);
@@ -60,7 +65,7 @@ private:
 public:
 	//identificate (run all Persons predicts (parallel) sync and return better result
 	//returns person name string
-	std::string identificate();
+	std::string identificate(cv::Mat input);
 
 	//constructor (hardcoded loop through all person folders creating Persons to add in vector
 	MSN();
