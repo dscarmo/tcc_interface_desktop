@@ -147,7 +147,8 @@ void Person::fillVector(int gord, const char* input_dir) {
 			ostringstream oss;
 			oss << input_dir << "\\" << file;
 			Mat image;
-			resize(imread(oss.str()),image, Size(100,100));
+			resize(imread(oss.str(), 0),image, Size(100,100));
+			equalizeHist(image, image);
 			if (!image.empty())
 				cout << "Imagem lida com sucesso." << endl;
 			else {
@@ -179,7 +180,7 @@ MSN::MSN() {
 		person->trainGrayNN(5);
 	}
 
-	for (Person* person : people) {
+	/*for (Person* person : people) {
 		cout << "predicting gray of " + person->personName + " in diedre gray network";
 		int max = 0;
 		for (Mat face : person->grayFaces) {
@@ -190,9 +191,11 @@ MSN::MSN() {
 
 		}
 
-	}
-	//Todo crop
+	}*/
+
 	for (Mat validation : people[6]->validation_imgs) {
+		Rect roi(20, 20, 60, 60);
+		validation = validation(roi);
 		imshow("validation", validation);
 		identificate(validation);
 		waitKey(0);
@@ -204,16 +207,29 @@ MSN::MSN() {
 }
 
 string MSN::identificate(cv::Mat input) {
+	map<double, string> results;
+
 	for (Person* person : people) 
-	{
+	{	
+
 		if (person->trained) 
 		{
-			cout << person->personName + " saida da NN: " + to_string(person->predict(input));
+			double result = person->predict(input);
+			string name = person->personName;
+			//cout << person->personName + " saida da NN: " + to_string(result);
+			results.insert(pair<double, string >(result, name));
 		}
 		else cout << person -> personName + " não treinado.";
 
-		// TODO Armazenar saidas e ordernar por person mais alta
+		
+		
 	}
+	for (auto r : results) {
+		cout << r.first << r.second << endl << endl;
+	}
+
+
+
 	return "lol";
 
 }

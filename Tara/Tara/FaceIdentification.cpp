@@ -125,7 +125,7 @@ int FaceIdentification::CameraStreaming()
 	VideoCapture depth_cap;
 	
 	MSN *msn = new MSN();
-
+	destroyAllWindows();
 	//Estimates the depth of the face using Haarcascade file of OpenCV
 	while(1)
 	{
@@ -149,11 +149,14 @@ int FaceIdentification::CameraStreaming()
 			LFaces = faceDetect(DisplayImage);
 			if(LFaces.size() > 0)
 				if (LFaces[0].width >= 100 && LFaces[0].height > 100) {
-					Rect roi(20, 20, 80, 80);
-					Mat nnInput = (DisplayImage(LFaces[0]));
+					Rect roi(20, 20, 60, 60);
+					Mat nnInput;
+					resize(DisplayImage(LFaces[0]), nnInput, Size(100,100));
+					nnInput = nnInput(roi);
+					equalizeHist(nnInput, nnInput);
 					msn->identificate(nnInput);
 					imshow("passando isso pra nn", nnInput);
-					waitKey(0);
+					waitKey(1);
 				}
 		}
 		catch (const std::exception& e)
@@ -166,9 +169,9 @@ int FaceIdentification::CameraStreaming()
 		FileStorage testFile("testSave.xml", FileStorage::WRITE);
 
 		if (LFaces.size() == 0) {
-			imshow("retanguloFace", gDisparityMap(saveRect));
-			lbp.grayLBPpipeline(LeftImage(saveRect));
-			lbp.depthPipeline(gDisparityMap(saveRect));
+			//imshow("retanguloFace", gDisparityMap(saveRect));
+			//lbp.grayLBPpipeline(LeftImage(saveRect));
+			//lbp.depthPipeline(gDisparityMap(saveRect));
 		} else
 		//Estimate the Depth of the point selected and save/show 3D face
 		for (size_t i = 0; i < LFaces.size(); i++)
@@ -193,9 +196,10 @@ int FaceIdentification::CameraStreaming()
 				ss.str(string());
 			}
 
-			imshow("retanguloFace", gDisparityMap(LFaces[i]));
-			lbp.grayLBPpipeline(LeftImage(LFaces[i]));
-			lbp.depthPipeline(gDisparityMap(LFaces[i]));
+			//imshow("retanguloFace", gDisparityMap(LFaces[i]));
+			rectangle(DisplayImage, LFaces[0], Scalar(255, 255, 255));
+			//lbp.grayLBPpipeline(LeftImage(LFaces[i]));
+			//lbp.depthPipeline(gDisparityMap(LFaces[i]));
 
 			if (save) {
 				save = false;
