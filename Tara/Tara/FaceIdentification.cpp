@@ -117,6 +117,7 @@ int FaceIdentification::CameraStreaming()
 	int option1, option2;
 	option2 = -1;
 
+	string idString;
 
 	option1 = CAM;
 
@@ -127,6 +128,9 @@ int FaceIdentification::CameraStreaming()
 	MSN *msn = new MSN();
 	destroyAllWindows();
 	//Estimates the depth of the face using Haarcascade file of OpenCV
+
+	//Detect the faces
+	Rect face(20, 20, 120, 120);
 	while(1)
 	{
 		if (option1 == CAM) {
@@ -142,22 +146,42 @@ int FaceIdentification::CameraStreaming()
 			//if (option2 == RECORD) dw.syncWriteAll(gDisparityMap, LeftImage, RightImage);
 		}
 		
-		//Detect the faces
 		try
 		{
 			DisplayImage = LeftImage.clone();
 			LFaces = faceDetect(DisplayImage);
-			if(LFaces.size() > 0)
-				if (LFaces[0].width >= 100 && LFaces[0].height > 100) {
-					Rect roi(20, 20, 60, 60);
-					Mat nnInput;
-					resize(DisplayImage(LFaces[0]), nnInput, Size(100,100));
-					nnInput = nnInput(roi);
-					equalizeHist(nnInput, nnInput);
-					msn->identificate(nnInput);
-					imshow("passando isso pra nn", nnInput);
-					waitKey(1);
+			Rect roi(20, 20, 60, 60);
+			Mat nnInput, dInput;
+			if (LFaces.size() > 0) {
+				face = LFaces[0];
+				for (Rect lface : LFaces) {
+					if (lface.width >= 100 && lface.height >= 100) {	
+						resize(DisplayImage(lface), nnInput, Size(100, 100));
+						resize(gDisparityMap(lface), dInput, Size(100, 100));
+						dInput = dInput(roi);
+						nnInput = nnInput(roi);
+						equalizeHist(nnInput, nnInput);
+						//equalizeHist(dInput, dInput);
+						idString = msn->identificate(nnInput, dInput);
+
+						imshow("passando isso pra nn", nnInput);
+						waitKey(1);
+					}
 				}
+			}
+			else
+			{
+				resize(DisplayImage(face), nnInput, Size(100, 100));
+				resize(gDisparityMap(face), dInput, Size(100, 100));
+				dInput = dInput(roi);
+				nnInput = nnInput(roi);
+				equalizeHist(nnInput, nnInput);
+				//equalizeHist(dInput, dInput);
+				idString = msn->identificate(nnInput, dInput);
+
+				imshow("passando isso pra nn", nnInput);
+				waitKey(1);
+			}
 		}
 		catch (const std::exception& e)
 		{
@@ -178,7 +202,7 @@ int FaceIdentification::CameraStreaming()
 		{
 			//Save last detected face
 			if (i == (LFaces.size() - 1)) {
-				saveRect = LFaces[i];
+				face = LFaces[i];
 			}
 
 			//Pointing to the center of the face
@@ -189,17 +213,17 @@ int FaceIdentification::CameraStreaming()
 			//Find the depth of the point passed
 			_Disparity.EstimateDepth(scaledPoint, &DepthValue);
 			
+			//Construct debug image
+			DisplayImage = drawFps(LeftImage);
+			rectangle(DisplayImage, LFaces[0], Scalar(255, 255, 255));
+			putText(DisplayImage, idString, Point(LFaces[i].x + LFaces[i].height, LFaces[i].y), FONT_HERSHEY_PLAIN, 1, Scalar(100, 100, 255));
+
 			if(g_SelectedPoint.x > RIGHTMATCH && DepthValue > 0) //Mark the point selected by the user
 			{				
 				ss << DepthValue / (10 * 2) << " cm\0" ;
 				Tara::DisplayText(DisplayImage, ss.str(), Point(LFaces[i].x, LFaces[i].y));
 				ss.str(string());
 			}
-
-			//imshow("retanguloFace", gDisparityMap(LFaces[i]));
-			rectangle(DisplayImage, LFaces[0], Scalar(255, 255, 255));
-			//lbp.grayLBPpipeline(LeftImage(LFaces[i]));
-			//lbp.depthPipeline(gDisparityMap(LFaces[i]));
 
 			if (save) {
 				save = false;
@@ -216,8 +240,7 @@ int FaceIdentification::CameraStreaming()
 		//imshow("depth", depthMap);
 		
 		//Display the Images
-		DisplayImage = drawFps(LeftImage);
-		imshow("Left Image",  DisplayImage);			
+		imshow("DIsplay",  DisplayImage);			
 
 		//Mouse and keyboard callbacks
 		setMouseCallback("retanguloFace", onMouse, 0);

@@ -16,27 +16,24 @@
 
 class Person {
 private:
-	enum grayOrDepth { gray, depth, negativo, validation};
-	int personID;
+	enum grayOrDepth { gray, depth};
 	std::string gray_xml_path;
 	std::string depth_xml_path;
-	const char * negativos_path;
-	const char * validation_path;
 	cv::Ptr<cv::ml::ANN_MLP> graynn;
 	cv::Ptr<cv::ml::ANN_MLP> depthnn;
 	void fillVector(int gord, const char* path);
-
 	//Test, will be in msn
 	LocalBinaryPattern test_lbp;
 
 public:
 
+	int personID;
 	bool trained;
 	std::string personName;
 	std::vector<cv::Mat> grayFaces;
 	std::vector<cv::Mat> depthFaces;
 	std::vector<cv::Mat> negativos;
-	std::vector<cv::Mat> validation_imgs;
+	std::vector<cv::Mat> dnegativos;
 
 	//constructor
 	Person(int id, std::string name, const char* grayPath, const char* depthPath);
@@ -45,7 +42,7 @@ public:
 	int trainGrayNN(int neuronios);
 	
 	//Train depthnn on depthfaces
-	void trainDepthNN();
+	int trainDepthNN(int neuronios);
 
 	//Loads gray XML
 	void loadGrayNN();
@@ -54,7 +51,7 @@ public:
 	void loadDepthNN();
 
 	//predict with input (runs both cnns predicts and weigth add returns result)
-	double predict(cv::Mat input);
+	double predict(cv::Mat input, cv::Mat dinput);
 
 };
 
@@ -65,7 +62,7 @@ private:
 public:
 	//identificate (run all Persons predicts (parallel) sync and return better result
 	//returns person name string
-	std::string identificate(cv::Mat input);
+	std::string identificate(cv::Mat input, cv::Mat dinput);
 
 	//constructor (hardcoded loop through all person folders creating Persons to add in vector
 	MSN();
