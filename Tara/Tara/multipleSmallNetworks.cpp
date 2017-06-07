@@ -104,9 +104,10 @@ int Person::trainGrayNN(int neuronios) {
 	//Positivos
 	for (Mat positivo : grayFaces) {
 		//this is confusing
-		Rect roi(20, 20, positivo.size().width - 40, positivo.size().height - 40);
+		//Rect roi(20, 20, positivo.size().width - 40, positivo.size().height - 40);
 		//imshow("positivo sendo treinado", positivo(roi)); waitKey(0);
-		Mat trainingHist = test_lbp.grayLBPpipeline(positivo(roi));
+		//Mat trainingHist = test_lbp.grayLBPpipeline(positivo(roi));
+		Mat trainingHist = test_lbp.grayLBPpipeline(positivo);
 		trainingHist.row(0).copyTo(samples.row(contador));
 		responses.at<float>(Point(0, contador)) = 1;
 		contador++;
@@ -116,9 +117,11 @@ int Person::trainGrayNN(int neuronios) {
 	//take one face from each other
 	for (Mat negativo : negativos) { //Must get a negative dataset for faces
 		//this is confusing
-		Rect roi(20, 20, negativo.size().width - 40, negativo.size().height - 40);
+		//Rect roi(20, 20, negativo.size().width - 40, negativo.size().height - 40);
 
-		Mat trainingHist = test_lbp.grayLBPpipeline(negativo(roi));
+		//Mat trainingHist = test_lbp.grayLBPpipeline(negativo(roi));
+
+		Mat trainingHist = test_lbp.grayLBPpipeline(negativo);
 		trainingHist.row(0).copyTo(samples.row(contador));
 		responses.at<float>(Point(0, contador)) = -1;
 		contador++;
@@ -142,14 +145,15 @@ double Person::predict(Mat input, Mat dinput) {
 	int PESODEPTH = 0;
 	int PESO = 1;
 
-	imshow("depth feature", dinput);
-	dfeature = calculate3DLBP(dinput);
+	//imshow("depth feature", dinput);
+	//dfeature = calculate3DLBP(dinput);
 	graynn->predict(feature, output);
 
-	depthnn->predict(dfeature, doutput);
+	//depthnn->predict(dfeature, doutput);
 	cout << "Gray de " + personName + ": " + to_string(output.at<float>(0, 0)) << endl;
-	cout << "Depth de " + personName + ": " + to_string(doutput.at<float>(0, 0)) << endl;
+	//cout << "Depth de " + personName + ": " + to_string(doutput.at<float>(0, 0)) << endl;
 	
+	doutput = output;
 	return (double)(PESO*output.at<float>(0, 0) + PESODEPTH*doutput.at<float>(0,0));
 }
 
@@ -204,6 +208,17 @@ void Person::fillVector(int gord, const char* input_dir) {
 }
 
 MSN::MSN() {
+
+	//Yale
+	people.push_back(new Person(1, "asian_woman", "Faces\\asian_woman\\gray", "Faces\\asian_woman\\depth"));
+	people.push_back(new Person(2, "big_eye", "Faces\\big_eye\\gray", "Faces\\big_eye\\depth"));
+	people.push_back(new Person(3, "bigode_limpo", "Faces\\bigode_limpo\\gray", "Faces\\bigode_limpo\\depth"));
+	people.push_back(new Person(4, "bigode_marcado", "Faces\\bigode_marcado\\gray", "Faces\\bigode_marcado\\depth"));
+	people.push_back(new Person(5, "sobrancelha_asia", "Faces\\sobrancelha_asia\\gray", "Faces\\sobrancelha_asia\\depth"));
+	people.push_back(new Person(999, "validation", "Faces\\validation\\gray", "Faces\\validation\\depth"));
+
+	//My dataset
+	/*
 	people.push_back(new Person(1, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth"));
 	people.push_back(new Person(2, "gin", "Faces\\gin\\gray", "Faces\\gin\\depth"));
 	people.push_back(new Person(3, "raul", "Faces\\raul\\gray", "Faces\\raul\\depth"));
@@ -212,7 +227,7 @@ MSN::MSN() {
 	people.push_back(new Person(6, "rodolfo", "Faces\\rodolfo\\gray", "Faces\\rodolfo\\depth"));
 	people.push_back(new Person(7, "darline", "Faces\\darline\\gray", "Faces\\darline\\depth"));
 	people.push_back(new Person(999, "validation", "Faces\\validation\\gray", "Faces\\validation\\depth"));
-
+	*/
 	//Each person fills its image vectors with grays and depths and negatives and eventually validation
 
 	//Cross positive training
@@ -245,15 +260,17 @@ MSN::MSN() {
 		for (Person* person : people) {
 			if (person->personName == "validation") continue;
 			person->trainGrayNN(6);
-			person->trainDepthNN(6);
+			//person->trainDepthNN(6);
 		}
 		int depthIndex = 0;
-		for (Mat validation: people[7] -> grayFaces) 
+		//Depth on hold
+		for (Mat validation: people[5] -> grayFaces) 
 		{
-			Rect roi(20, 20, 60, 60);
-			Mat dvalidation = people[7] -> depthFaces[depthIndex++];
-			validation = validation(roi);
-			dvalidation = dvalidation(roi);
+			//Rect roi(20, 20, 60, 60);
+			//Mat dvalidation = people[7] -> depthFaces[depthIndex++];
+			//validation = validation(roi);
+			//dvalidation = dvalidation(roi);
+			Mat dvalidation;
 			imshow("validation", validation);
 			identificate(validation, dvalidation);
 			waitKey(0);
