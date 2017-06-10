@@ -83,10 +83,11 @@ int FaceIdentification::CameraStreaming()
 {	
 	stringstream ss;
 	vector<Rect> LFaces;
+	Rect RFace;
 	float DepthValue;
 	bool RImageDisplay = false;
 	int BrightnessVal = 4;		//Default value
-	Mat gDisparityMap, gDisparityMap_viz, RightImage, DisplayImage, depthMap;
+	Mat gDisparityMap, gDisparityMap_viz, RightImage, DisplayImage, DepthDisplayImage, depthMap, finalDebug;
 	Point g_SelectedPoint;
 	Rect saveRect(20,20, 120, 120);
 	//user key input
@@ -149,8 +150,38 @@ int FaceIdentification::CameraStreaming()
 		try
 		{
 			DisplayImage = LeftImage.clone();
+			//cvtColor(gDisparityMap_viz, DepthDisplayImage, CV_BGR2GRAY);
+			DepthDisplayImage = gDisparityMap.clone();
 			LFaces = faceDetect(DisplayImage);
+			Mat leftFace, rightFace, depthFace;
+		
+			//Normalizer roi
 			Rect roi(20, 20, 60, 60);
+			Mat nnInput, dInput;
+			if (LFaces.size() > 0)
+			{
+				//RFace = Rect(LFaces[0].x - 80, LFaces[0].y, LFaces[0].width + 40, LFaces[0].height);
+				RFace = LFaces[0];
+				leftFace = DisplayImage(LFaces[0]);
+				rightFace = RightImage(RFace);
+				depthFace = gDisparityMap_viz(RFace);
+				imshow("face na esquerda", leftFace);
+				imshow("face na direita", rightFace);
+				imshow("disparity face", depthFace);
+				for (Rect lface : LFaces) 
+				{
+					if (lface.width >= 100 && lface.height >= 100) 
+					{
+						resize(leftFace, nnInput, Size(100, 100));
+						nnInput = nnInput(roi);
+						equalizeHist(nnInput, nnInput);
+						idString = msn->identificate(nnInput, dInput);
+						waitKey(1);
+					}
+				}
+			}
+			
+			/*Rect roi(20, 20, 60, 60);
 			Mat nnInput, dInput;
 			if (LFaces.size() > 0) {
 				face = LFaces[0];
@@ -181,7 +212,7 @@ int FaceIdentification::CameraStreaming()
 
 				imshow("passando isso pra nn", nnInput);
 				waitKey(1);
-			}
+			}*/
 		}
 		catch (const std::exception& e)
 		{
@@ -216,7 +247,8 @@ int FaceIdentification::CameraStreaming()
 			//Construct debug image
 			DisplayImage = drawFps(LeftImage);
 			rectangle(DisplayImage, LFaces[0], Scalar(255, 255, 255));
-			putText(DisplayImage, idString, Point(LFaces[i].x + LFaces[i].height, LFaces[i].y), FONT_HERSHEY_PLAIN, 1, Scalar(100, 100, 255));
+			rectangle(DepthDisplayImage, LFaces[0], Scalar(255, 255, 255));
+			putText(DepthDisplayImage, idString, Point(LFaces[i].x + LFaces[i].height, LFaces[i].y), FONT_HERSHEY_PLAIN, 1, Scalar(100, 100, 255));
 
 			if(g_SelectedPoint.x > RIGHTMATCH && DepthValue > 0) //Mark the point selected by the user
 			{				
@@ -239,8 +271,8 @@ int FaceIdentification::CameraStreaming()
 
 		//imshow("depth", depthMap);
 		
-		//Display the Images
-		imshow("DIsplay",  DisplayImage);			
+		hconcat(DisplayImage, DepthDisplayImage, finalDebug);
+		imshow("Debug",  finalDebug);			
 
 		//Mouse and keyboard callbacks
 		setMouseCallback("retanguloFace", onMouse, 0);

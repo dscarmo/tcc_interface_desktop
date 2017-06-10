@@ -142,19 +142,28 @@ double Person::predict(Mat input, Mat dinput) {
 	Mat dfeature(Size(3584, 1), CV_32F);
 	Mat input_lbp = test_lbp.grayLBPpipeline(input);
 	input_lbp.row(0).copyTo(feature.row(0));
+	double points2d, points3d;
+	points2d = 0;
+	points3d = 0;
 	int PESODEPTH = 0;
 	int PESO = 1;
 
-	//imshow("depth feature", dinput);
-	//dfeature = calculate3DLBP(dinput);
+	//Gray
 	graynn->predict(feature, output);
-
-	//depthnn->predict(dfeature, doutput);
-	cout << "Gray de " + personName + ": " + to_string(output.at<float>(0, 0)) << endl;
-	//cout << "Depth de " + personName + ": " + to_string(doutput.at<float>(0, 0)) << endl;
+	points2d = (double)PESO*output.at<float>(0, 0);
+	cout << "Gray de " + personName + ": " + to_string(points2d/PESO) << endl;
 	
-	doutput = output;
-	return (double)(PESO*output.at<float>(0, 0) + PESODEPTH*doutput.at<float>(0,0));
+	//Depth
+	if (!dinput.empty())
+	{
+		imshow("depth feature", dinput);
+		dfeature = calculate3DLBP(dinput);
+		depthnn->predict(dfeature, doutput);
+		points3d = PESODEPTH*doutput.at<float>(0, 0);
+		cout << "Depth de " + personName + ": " + to_string(points3d/PESODEPTH) << endl;
+	}
+
+	return points2d + points3d;
 }
 
 void Person::fillVector(int gord, const char* input_dir) {
