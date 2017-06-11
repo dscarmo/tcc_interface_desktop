@@ -25,6 +25,7 @@
 #include "multipleSmallNetworks.hpp"
 #include <iomanip>
 #include <ctime>
+#include <algorithm>
 
 #define RIGHTMATCH 150 //disparity range starts from 150 so in case of the point being less than 150 it means that the face is not fully covered in the right.
 #define CAM 0
@@ -87,7 +88,7 @@ int FaceIdentification::CameraStreaming()
 	float DepthValue;
 	bool RImageDisplay = false;
 	int BrightnessVal = 4;		//Default value
-	Mat gDisparityMap, gDisparityMap_viz, RightImage, DisplayImage, DepthDisplayImage, depthMap, finalDebug;
+	Mat gDisparityMap, gDisparityMap_viz, RightImage, DisplayImage, DepthDisplayImage, depthMap, leftRegion, rightRegion, leftDetect, finalDebug;
 	Point g_SelectedPoint;
 	Rect saveRect(20,20, 120, 120);
 	//user key input
@@ -142,156 +143,128 @@ int FaceIdentification::CameraStreaming()
 			}
 
 			//Get disparity
-			_Disparity.GetDisparity(LeftImage, RightImage, &gDisparityMap, &gDisparityMap_viz);
-
-			//if (option2 == RECORD) dw.syncWriteAll(gDisparityMap, LeftImage, RightImage);
+			//_Disparity.GetDisparity(LeftImage, RightImage, &gDisparityMap, &gDisparityMap_viz);
 		}
 		
 		try
 		{
 			DisplayImage = LeftImage.clone();
 			//cvtColor(gDisparityMap_viz, DepthDisplayImage, CV_BGR2GRAY);
-			DepthDisplayImage = gDisparityMap.clone();
+			//DepthDisplayImage = gDisparityMap.clone();
 			LFaces = faceDetect(DisplayImage);
-			Mat leftFace, rightFace, depthFace;
 		
 			//Normalizer roi
-			Rect roi(20, 20, 60, 60);
-			Mat nnInput, dInput;
+			Rect roi(20, 20, 60, 70);
+			Mat preEq, nnInput, dInput;
 			if (LFaces.size() > 0)
 			{
-				//RFace = Rect(LFaces[0].x - 80, LFaces[0].y, LFaces[0].width + 40, LFaces[0].height);
-				RFace = LFaces[0];
-				leftFace = DisplayImage(LFaces[0]);
-				rightFace = RightImage(RFace);
-				depthFace = gDisparityMap_viz(RFace);
-				imshow("face na esquerda", leftFace);
-				imshow("face na direita", rightFace);
-				imshow("disparity face", depthFace);
+				//Adjust approximate face region 
+				RFace = Rect(max<int>(LFaces[0].x - 80, 0), max<int>(LFaces[0].y - 70, 0), LFaces[0].width + 80, LFaces[0].height + 110);
+				if (RFace.br().x > DisplayImage.size().width || RFace.br().y > DisplayImage.size().height) { RFace.height = LFaces[0].height; RFace.width = LFaces[0].width; }
+				
+				//Detection and approximate face regions for disparity calculations
+				leftDetect = DisplayImage(LFaces[0]);
+				rightRegion = RightImage(RFace);
+				leftRegion = LeftImage(RFace);
+				_Disparity.GetDisparity(leftRegion, rightRegion, &gDisparityMap, &gDisparityMap_viz);
+
+				imshow("detected rect", leftDetect);
+				imshow("approximate face region on right", rightRegion);
+				imshow("approximate face region on left", leftRegion);
+
+				imshow("visualização depth", gDisparityMap_viz);
+
+				imshow("disparity crua", gDisparityMap);
+				int i = 0;
 				for (Rect lface : LFaces) 
 				{
+					//Neural recognition
 					if (lface.width >= 100 && lface.height >= 100) 
 					{
-						resize(leftFace, nnInput, Size(100, 100));
-						nnInput = nnInput(roi);
-						equalizeHist(nnInput, nnInput);
+						//resize(leftDetect, preEq, Size(100, 100));
+						//preEq = preEq(roi);
+						//Percentage roi
+						preEq = leftDetect(Rect(Point(leftDetect.size().width*0.15, leftDetect.size().height*0.2), //top-left
+												Point(leftDetect.size().width*0.85, leftDetect.size().height*0.9))); //bottom-right
+															
+
+						resize(preEq, preEq, Size(DEFAULT_DATASET_WIDTH, DEFAULT_DATA_HEIGHT));
+						equalizeHist(preEq, nnInput);
+						imshow("live pre processing result", nnInput);
 						idString = msn->identificate(nnInput, dInput);
 						waitKey(1);
 					}
-				}
-			}
-			
-			/*Rect roi(20, 20, 60, 60);
-			Mat nnInput, dInput;
-			if (LFaces.size() > 0) {
-				face = LFaces[0];
-				for (Rect lface : LFaces) {
-					if (lface.width >= 100 && lface.height >= 100) {	
-						resize(DisplayImage(lface), nnInput, Size(100, 100));
-						resize(gDisparityMap(lface), dInput, Size(100, 100));
-						dInput = dInput(roi);
-						nnInput = nnInput(roi);
-						equalizeHist(nnInput, nnInput);
-						//equalizeHist(dInput, dInput);
-						idString = msn->identificate(nnInput, dInput);
 
-						imshow("passando isso pra nn", nnInput);
-						waitKey(1);
+					//Save last detected face
+					if (i == (LFaces.size() - 1)) {
+						face = LFaces[i];
 					}
+
+					//Pointing to the center of the face
+					g_SelectedPoint = Point(LFaces[i].x + LFaces[i].width / 2, LFaces[i].y + LFaces[i].height / 2);
+
+					Point scaledPoint = unscalePoint(g_SelectedPoint, LeftImage.size(), gDisparityMap.size());
+
+					//Find the depth of the point passed
+					_Disparity.EstimateDepth(scaledPoint, &DepthValue);
+
+					//Construct debug image
+					DisplayImage = drawFps(LeftImage);
+					rectangle(DisplayImage, LFaces[0], Scalar(0, 0, 255));
+					rectangle(DisplayImage, RFace, Scalar(255, 255, 255));
+					rectangle(RightImage, RFace, Scalar(255, 255, 255));
+					putText(DisplayImage, idString, Point(LFaces[i].x + LFaces[i].height, LFaces[i].y), FONT_HERSHEY_PLAIN, 1, Scalar(100, 100, 255));
+
+					if (g_SelectedPoint.x > RIGHTMATCH && DepthValue > 0) //Mark the point selected by the user
+					{
+						ss << DepthValue / (10 * 2) << " cm\0";
+						Tara::DisplayText(DisplayImage, ss.str(), Point(LFaces[i].x, LFaces[i].y));
+						ss.str(string());
+					}
+
+					i++;
+				}
+
+				//Save if save toggled
+				if (save) {
+					Mat saveimg;
+					struct tm newtime;
+					time_t now = time(0);
+					localtime_s(&newtime, &now);
+					string date = to_string(newtime.tm_hour) + to_string(newtime.tm_min) + to_string(newtime.tm_sec);
+					//resize(LeftImage(LFaces[0]), saveimg, Size(100, 100));
+					if (!preEq.empty())
+						imwrite("Faces\\" + date + ".jpg", preEq);
 				}
 			}
-			else
-			{
-				resize(DisplayImage(face), nnInput, Size(100, 100));
-				resize(gDisparityMap(face), dInput, Size(100, 100));
-				dInput = dInput(roi);
-				nnInput = nnInput(roi);
-				equalizeHist(nnInput, nnInput);
-				//equalizeHist(dInput, dInput);
-				idString = msn->identificate(nnInput, dInput);
-
-				imshow("passando isso pra nn", nnInput);
-				waitKey(1);
-			}*/
 		}
 		catch (const std::exception& e)
 		{
 			cout << e.what();
+			continue;
 		}
 		
-		//Construct 
-		int SCALE = 10;
-		FileStorage testFile("testSave.xml", FileStorage::WRITE);
-
-		if (LFaces.size() == 0) {
-			//imshow("retanguloFace", gDisparityMap(saveRect));
-			//lbp.grayLBPpipeline(LeftImage(saveRect));
-			//lbp.depthPipeline(gDisparityMap(saveRect));
-		} else
-		//Estimate the Depth of the point selected and save/show 3D face
-		for (size_t i = 0; i < LFaces.size(); i++)
-		{
-			//Save last detected face
-			if (i == (LFaces.size() - 1)) {
-				face = LFaces[i];
-			}
-
-			//Pointing to the center of the face
-			g_SelectedPoint = Point(LFaces[i].x + LFaces[i].width / 2, LFaces[i].y + LFaces[i].height / 2);
-
-			Point scaledPoint = unscalePoint(g_SelectedPoint, LeftImage.size(),  gDisparityMap.size());
-			
-			//Find the depth of the point passed
-			_Disparity.EstimateDepth(scaledPoint, &DepthValue);
-			
-			//Construct debug image
-			DisplayImage = drawFps(LeftImage);
-			rectangle(DisplayImage, LFaces[0], Scalar(255, 255, 255));
-			rectangle(DepthDisplayImage, LFaces[0], Scalar(255, 255, 255));
-			putText(DepthDisplayImage, idString, Point(LFaces[i].x + LFaces[i].height, LFaces[i].y), FONT_HERSHEY_PLAIN, 1, Scalar(100, 100, 255));
-
-			if(g_SelectedPoint.x > RIGHTMATCH && DepthValue > 0) //Mark the point selected by the user
-			{				
-				ss << DepthValue / (10 * 2) << " cm\0" ;
-				Tara::DisplayText(DisplayImage, ss.str(), Point(LFaces[i].x, LFaces[i].y));
-				ss.str(string());
-			}
-
-			if (save) {
-				save = false;
-				struct tm newtime;
-				time_t now = time(0);
-				localtime_s(&newtime, &now);
-				string date = to_string(newtime.tm_hour) + to_string(newtime.tm_min) + to_string(newtime.tm_sec);
-				imwrite("Faces\\"  + date + ".jpg", LeftImage(LFaces[i]));
-				imwrite("Faces\\"  + date + "depth.jpg", gDisparityMap(LFaces[i]));
-				testFile << "test_disp" << gDisparityMap(LFaces[i]);
-			}
-		}
-
-		//imshow("depth", depthMap);
-		
-		hconcat(DisplayImage, DepthDisplayImage, finalDebug);
+		hconcat(DisplayImage, RightImage, finalDebug);
 		imshow("Debug",  finalDebug);			
 
 		//Mouse and keyboard callbacks
 		setMouseCallback("retanguloFace", onMouse, 0);
 
-		//waits for the Key input
+		//Command events:
 		WaitKeyStatus = waitKey(1);
 		if(WaitKeyStatus == 'q' || WaitKeyStatus == 'Q' || WaitKeyStatus == 27) //Quit
 		{	
 			//if (option2 == RECORD) dw.syncRecordAll();
 			vector<Rect>().swap(LFaces);
 			destroyAllWindows();
-			testFile.release();
 			break;
 		}
 
 		else if (WaitKeyStatus == 's' || WaitKeyStatus == 'S') //Show the right image
 		{
-			cout << "Saving next detected face" << endl;
-			save = true;
+			cout << "Saving next detected faces" << endl;
+			save = !save;
+			waitKey(0);
 		}
 		else if(WaitKeyStatus == 'b' || WaitKeyStatus == 'B') //Brightness
 		{	
@@ -329,10 +302,6 @@ int FaceIdentification::CameraStreaming()
 				cout << endl << " Value out of Range - Invalid!!" << endl;
 			}							
 		}
-		/*LeftImage.release();
-		RightImage.release();
-		gDisparityMap.release();
-		gDisparityMap_viz.release();*/
 	}
 
 	return 1;

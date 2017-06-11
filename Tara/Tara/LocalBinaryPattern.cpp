@@ -190,7 +190,7 @@ Mat LocalBinaryPattern::grayLBPpipeline(Mat frame) {
 	vector<double> hist; //container do vetor de debug
 	Mat lbp; //imagem lbp
 	Mat3b draw; //container do draw
-	imshow("frame", frame);
+	//imshow("frame", frame);
 	lbp = grayImageLBP(frame);
 	imshow("lbp", lbp);
 	histograma = getHistogram(lbp);

@@ -7,6 +7,9 @@
 
 #define CREATION_ERROR 1
 #define TREINO_COMPLETO 0
+
+#define DEFAULT_DATASET_WIDTH 168
+#define DEFAULT_DATA_HEIGHT 192
 //personID
 //personName
 //gray faces

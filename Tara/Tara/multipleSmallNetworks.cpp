@@ -166,6 +166,7 @@ double Person::predict(Mat input, Mat dinput) {
 	return points2d + points3d;
 }
 
+//Fills with pre process
 void Person::fillVector(int gord, const char* input_dir) {
 	vector<String> all_files;
 
@@ -198,8 +199,9 @@ void Person::fillVector(int gord, const char* input_dir) {
 		if (ends_with(".png", file) || ends_with(".jpg", file) || ends_with(".jpeg", file)) {
 			ostringstream oss;
 			oss << input_dir << "\\" << file;
-			Mat image;
-			resize(imread(oss.str(), 0),image, Size(100,100));
+			//Mat image;
+			//resize(imread(oss.str(), 0),image, Size(100,100));
+			Mat image = imread(oss.str(),0);
 			if (gord == gray) equalizeHist(image, image);
 			if (!image.empty())
 				cout << "Imagem lida com sucesso." << endl;
@@ -221,10 +223,12 @@ MSN::MSN() {
 	//Yale
 	people.push_back(new Person(1, "asian_woman", "Faces\\asian_woman\\gray", "Faces\\asian_woman\\depth"));
 	people.push_back(new Person(2, "big_eye", "Faces\\big_eye\\gray", "Faces\\big_eye\\depth"));
-	people.push_back(new Person(3, "bigode_limpo", "Faces\\bigode_limpo\\gray", "Faces\\bigode_limpo\\depth"));
-	people.push_back(new Person(4, "bigode_marcado", "Faces\\bigode_marcado\\gray", "Faces\\bigode_marcado\\depth"));
+	people.push_back(new Person(3, "europeu", "Faces\\bigode_limpo\\gray", "Faces\\bigode_limpo\\depth"));
+	//people.push_back(new Person(4, "bigode_marcado", "Faces\\bigode_marcado\\gray", "Faces\\bigode_marcado\\depth"));
 	people.push_back(new Person(5, "sobrancelha_asia", "Faces\\sobrancelha_asia\\gray", "Faces\\sobrancelha_asia\\depth"));
 	people.push_back(new Person(999, "validation", "Faces\\validation\\gray", "Faces\\validation\\depth"));
+
+	people.push_back(new Person(6, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth"));
 
 	//My dataset
 	/*
@@ -266,26 +270,35 @@ MSN::MSN() {
 
 	//Test
 	//for (int neu = 2; neu < 10; neu++) {
-		for (Person* person : people) {
-			if (person->personName == "validation") continue;
-			person->trainGrayNN(6);
-			//person->trainDepthNN(6);
-		}
-		int depthIndex = 0;
-		//Depth on hold
-		for (Mat validation: people[5] -> grayFaces) 
+	int validationIndex = 0;
+	int i = 0;
+	for (Person* person : people) 
+	{
+		if (person->personName == "validation") 
 		{
-			//Rect roi(20, 20, 60, 60);
-			//Mat dvalidation = people[7] -> depthFaces[depthIndex++];
-			//validation = validation(roi);
-			//dvalidation = dvalidation(roi);
-			Mat dvalidation;
-			imshow("validation", validation);
-			identificate(validation, dvalidation);
-			waitKey(0);
-		}
-		cout << "para";
-	//}
+			validationIndex = i;
+			continue;
+		} 
+		i++;
+		person->trainGrayNN(6);
+		//person->trainDepthNN(6);
+	}
+
+	int depthIndex = 0;
+	//Depth on hold
+		
+	for (Mat validation: people[validationIndex] -> grayFaces) 
+	{
+		//Rect roi(20, 20, 60, 60);
+		//Mat dvalidation = people[7] -> depthFaces[depthIndex++];
+		//validation = validation(roi);
+		//dvalidation = dvalidation(roi);
+		Mat dvalidation;
+		imshow("validation", validation);
+		identificate(validation, dvalidation);
+		waitKey(0);
+	}
+	cout << "para";
 
 
 }
