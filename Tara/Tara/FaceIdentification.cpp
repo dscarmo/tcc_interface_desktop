@@ -120,6 +120,7 @@ int FaceIdentification::CameraStreaming()
 	option2 = -1;
 
 	string idString;
+	string rightString;
 
 	option1 = CAM;
 
@@ -159,39 +160,43 @@ int FaceIdentification::CameraStreaming()
 			if (LFaces.size() > 0)
 			{
 				//Adjust approximate face region 
-				RFace = Rect(max<int>(LFaces[0].x - 80, 0), max<int>(LFaces[0].y - 70, 0), LFaces[0].width + 80, LFaces[0].height + 110);
+				RFace = Rect(max<int>(LFaces[0].x - 80, 0), max<int>(LFaces[0].y, 0), LFaces[0].width, LFaces[0].height);
+				//RFace = LFaces[0];
 				if (RFace.br().x > DisplayImage.size().width || RFace.br().y > DisplayImage.size().height) { RFace.height = LFaces[0].height; RFace.width = LFaces[0].width; }
 				
 				//Detection and approximate face regions for disparity calculations
 				leftDetect = DisplayImage(LFaces[0]);
 				rightRegion = RightImage(RFace);
-				leftRegion = LeftImage(RFace);
-				_Disparity.GetDisparity(leftRegion, rightRegion, &gDisparityMap, &gDisparityMap_viz);
 
 				imshow("detected rect", leftDetect);
 				imshow("approximate face region on right", rightRegion);
-				imshow("approximate face region on left", leftRegion);
 
-				imshow("visualização depth", gDisparityMap_viz);
-
-				imshow("disparity crua", gDisparityMap);
 				int i = 0;
 				for (Rect lface : LFaces) 
 				{
+					if (i > 0) break; //Just for one 
+
 					//Neural recognition
 					if (lface.width >= 100 && lface.height >= 100) 
 					{
-						//resize(leftDetect, preEq, Size(100, 100));
-						//preEq = preEq(roi);
-						//Percentage roi
+						//Left
+						cout << "-------------------- LEFT VIEW ---------------------" << endl;
 						preEq = leftDetect(Rect(Point(leftDetect.size().width*0.15, leftDetect.size().height*0.2), //top-left
 												Point(leftDetect.size().width*0.85, leftDetect.size().height*0.9))); //bottom-right
-															
-
 						resize(preEq, preEq, Size(DEFAULT_DATASET_WIDTH, DEFAULT_DATA_HEIGHT));
 						equalizeHist(preEq, nnInput);
-						imshow("live pre processing result", nnInput);
+						imshow("LEFT pre processing result", nnInput);
 						idString = msn->identificate(nnInput, dInput);
+
+						//Right
+						cout << "-------------------- RIGHT VIEW ---------------------" << endl;
+						preEq = rightRegion(Rect(Point(rightRegion.size().width*0.15, rightRegion.size().height*0.2), //top-left
+							Point(rightRegion.size().width*0.85, rightRegion.size().height*0.9))); //bottom-right
+						resize(preEq, preEq, Size(DEFAULT_DATASET_WIDTH, DEFAULT_DATA_HEIGHT));
+						equalizeHist(preEq, nnInput);
+						imshow("RIGHT pre processing result", nnInput);
+						rightString = msn->identificate(nnInput, dInput);
+
 						waitKey(1);
 					}
 
@@ -211,9 +216,9 @@ int FaceIdentification::CameraStreaming()
 					//Construct debug image
 					DisplayImage = drawFps(LeftImage);
 					rectangle(DisplayImage, LFaces[0], Scalar(0, 0, 255));
-					rectangle(DisplayImage, RFace, Scalar(255, 255, 255));
 					rectangle(RightImage, RFace, Scalar(255, 255, 255));
 					putText(DisplayImage, idString, Point(LFaces[i].x + LFaces[i].height, LFaces[i].y), FONT_HERSHEY_PLAIN, 1, Scalar(100, 100, 255));
+					putText(RightImage, rightString, Point(RFace.x + RFace.height, RFace.y), FONT_HERSHEY_PLAIN, 1, Scalar(100, 100, 255));
 
 					if (g_SelectedPoint.x > RIGHTMATCH && DepthValue > 0) //Mark the point selected by the user
 					{

@@ -151,7 +151,7 @@ double Person::predict(Mat input, Mat dinput) {
 	//Gray
 	graynn->predict(feature, output);
 	points2d = (double)PESO*output.at<float>(0, 0);
-	cout << "Gray de " + personName + ": " + to_string(points2d/PESO) << endl;
+	//cout << "Gray de " + personName + ": " + to_string(points2d/PESO) << endl;
 	
 	//Depth
 	if (!dinput.empty())

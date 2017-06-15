@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <iostream>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/ml/ml.hpp"
@@ -70,4 +71,3 @@ public:
 	//constructor (hardcoded loop through all person folders creating Persons to add in vector
 	MSN();
 };
-
