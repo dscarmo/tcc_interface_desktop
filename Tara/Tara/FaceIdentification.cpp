@@ -186,7 +186,7 @@ int FaceIdentification::CameraStreaming()
 						resize(preEq, preEq, Size(DEFAULT_DATASET_WIDTH, DEFAULT_DATA_HEIGHT));
 						equalizeHist(preEq, nnInput);
 						imshow("LEFT pre processing result", nnInput);
-						idString = msn->identificate(nnInput, dInput);
+						idString = msn->identificate(nnInput);
 
 						//Right
 						cout << "-------------------- RIGHT VIEW ---------------------" << endl;
@@ -195,7 +195,7 @@ int FaceIdentification::CameraStreaming()
 						resize(preEq, preEq, Size(DEFAULT_DATASET_WIDTH, DEFAULT_DATA_HEIGHT));
 						equalizeHist(preEq, nnInput);
 						imshow("RIGHT pre processing result", nnInput);
-						rightString = msn->identificate(nnInput, dInput);
+						rightString = msn->identificate(nnInput);
 
 						waitKey(1);
 					}
