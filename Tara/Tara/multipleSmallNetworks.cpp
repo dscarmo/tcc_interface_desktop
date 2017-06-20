@@ -7,33 +7,41 @@
 using namespace std;
 using namespace cv;
 
-Person::Person(int id, string name, const char* grayPath, const char * depthPath){
+Person::Person(int id, string name, string grayPath){
 	//Put arguments and pushback faces
 	trained = false;
 	personID = id;
 	personName = name;
 	Mat readGray;
-	Mat depthGray;
-	gray_xml_path = "xml\\gray_neural_" + personName + ".xml";
-	svm_xml_path = "xml\\svm_neural_" + personName + ".xml";
+	
 	//Fill vector gray
-	//Fill vector depth
 	fillVector(grayPath);
 
-	//Debug
-	/*for (int i = 0; i < grayFaces.size(); i++) {
-		imshow("gray faces", grayFaces[i]);
-		waitKey(1);
-	}
-	for (int j = 0; j < depthFaces.size(); j++) {
-		imshow("depthFaces", depthFaces[j]);
-		waitKey(1);
-	}
-	for (int j = 0; j < validation_imgs.size(); j++) {
-		imshow("validation", validation_imgs[j]);
-		waitKey(1);
-	}*/
 
+	gray_xml_path = "xml\\gray_neural_" + personName + ".xml";
+	svm_xml_path = "xml\\svm_neural_" + personName + ".xml";
+
+}
+
+void Person::loadGrayNN() {
+	graynn->load<ml::ANN_MLP>(gray_xml_path);
+}
+
+void Person::loadSVM() {
+	svm->load<ml::SVM>(svm_xml_path);
+}
+
+void Person::displayPerson(int waittime) {
+	for (Mat face : grayFaces) 
+	{
+		imshow("gray faces", face);
+		waitKey(waittime);
+	}
+
+	for (Mat face : negativos) {
+		imshow("negativos", face);
+		waitKey(waittime);
+	}
 }
 
 int Person::trainGrayNN(int neuronios) {
@@ -44,7 +52,6 @@ int Person::trainGrayNN(int neuronios) {
 	
 	//svm
 	svm = ml::SVM::create();
-
 
 	//neural
 	graynn = ml::ANN_MLP::create();
@@ -120,11 +127,11 @@ double Person::predict(Mat input) {
 }
 
 //Fills with pre process
-void Person::fillVector(const char* input_dir) {
+void Person::fillVector(string input_dir) {
 	vector<String> all_files;
 
 	//Pointer to input directory
-	DIR *dir_ptr = opendir(input_dir);
+	DIR *dir_ptr = opendir(input_dir.c_str());
 	if (dir_ptr == NULL) {
 		cout << "DIR NULL POINTER!!! Insert correct hardcoded dataset directory" << endl;
 		system("PAUSE");
@@ -149,7 +156,32 @@ void Person::fillVector(const char* input_dir) {
 
 	vector<String> image_files;
 	for (String file : all_files) {
-		if (ends_with(".png", file) || ends_with(".jpg", file) || ends_with(".jpeg", file)) {
+		if (ends_with(".png", file) || ends_with(".jpg", file) || ends_with(".jpeg", file) || ends_with(".pgm",file) ) {
+			
+			//Check if yale dataset
+			try
+			{
+				vector<string> splited = splitString(file, 'B');
+				if (splited[0].compare("yale") == 0)
+				{
+					//Exclude high E images
+					/*splited = splitString(file, '+');
+					splited = splitString(splited[1], 'E');*/
+					string substring = file.substr(13, 3);
+					int exposure = stoi(substring);
+					if (exposure > 20)
+						continue;
+				}
+			}
+			catch (const std::exception& e)
+			{
+				cout << e.what() << endl;
+				continue;
+			}
+			
+			
+
+
 			ostringstream oss;
 			oss << input_dir << "\\" << file;
 			//Mat image;
@@ -172,15 +204,71 @@ void Person::fillVector(const char* input_dir) {
 
 MSN::MSN() {
 
-	//Yale
-	people.push_back(new Person(1, "asian_woman", "Faces\\asian_woman\\gray", "Faces\\asian_woman\\depth"));
-	people.push_back(new Person(2, "big_eye", "Faces\\big_eye\\gray", "Faces\\big_eye\\depth"));
-	people.push_back(new Person(3, "europeu", "Faces\\bigode_limpo\\gray", "Faces\\bigode_limpo\\depth"));
-	//people.push_back(new Person(4, "bigode_marcado", "Faces\\bigode_marcado\\gray", "Faces\\bigode_marcado\\depth"));
-	people.push_back(new Person(5, "sobrancelha_asia", "Faces\\sobrancelha_asia\\gray", "Faces\\sobrancelha_asia\\depth"));
-	people.push_back(new Person(999, "validation", "Faces\\validation\\gray", "Faces\\validation\\depth"));
+	//Yale full
+	for (int i = 1; i < 40; i++) 
+	{
+		//Excluded faces, too similar
+		if (i != 2 &&
+			i != 4 &&
+			i != 5 &&
+			i != 6 &&
+			i != 7 &&
+			i != 8 &&
+			i != 13 &&
+			i != 16 &&
+			i != 17 &&
+			i != 23 &&
+			i != 26 &&
+			i != 27 &&
+			i != 31 &&
+			i != 32 &&
+			i != 33 &&
+			i != 36  ) continue;//doesnt exist, dont know why
+		string index = "";
+		string path;
+		ostringstream ossindex, osspath;
 
-	people.push_back(new Person(6, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth"));
+		if (i < 10) 
+		{
+			ossindex << "0" << i;
+		}
+		else
+		{
+			ossindex << i;
+		}
+		index = ossindex.str();
+		osspath << "CroppedYale\\yaleB" << index;
+		path = osspath.str();
+		cout << path<< endl;
+		people.push_back(new Person(i, "yaleB" + index, path));
+	}
+
+	people.push_back(new Person(999, "validation", "Faces\\validation"));
+	
+	//Fill validation
+	for (Person* validation : people)
+	{
+		if (validation->personID == 999) 
+		{
+			for (Person* person : people)
+			{
+				if (person->personID != 999)
+				{
+					validation->grayFaces.push_back(person->grayFaces.back());
+					person->grayFaces.pop_back();
+				}
+			}
+		}
+	}
+
+	//Yale Small
+	/*people.push_back(new Person(1, "asian_woman", "Faces\\asian_woman\\gray"));
+	people.push_back(new Person(2, "big_eye", "Faces\\big_eye\\gray"));
+	people.push_back(new Person(3, "europeu", "Faces\\bigode_limpo\\gray"));
+	people.push_back(new Person(5, "sobrancelha_asia", "Faces\\sobrancelha_asia\\gray"));
+	people.push_back(new Person(999, "validation", "Faces\\validation\\gray"));
+
+	people.push_back(new Person(6, "diedre", "Faces\\diedre\\gray"));
 
 	//My dataset
 	/*
@@ -204,36 +292,53 @@ MSN::MSN() {
 		//2 samples from each as negativo
 		for (Person* other : people) 
 		{
+			//Skip odd
 			if (currentPerson == other->personID) continue; //skip himself
 			int getTwo = 0;
 			for (Mat sample : other -> grayFaces) 
 			{
-				person->negativos.push_back(sample.clone());
+				person->negativos.push_back(other->grayFaces[0].clone()); //only one negativo from each
 				if (getTwo++ == 1) break;
 			}
 			getTwo = 0;
 		}
 	}
 
+	//Debug display filled images
+	if (debugshow)
+	for (Person* person : people) {
+		person->displayPerson(100);
+	}
+
 	//Test
 	//for (int neu = 2; neu < 10; neu++) {
 	int validationIndex = 0;
 	int i = 0;
-	for (Person* person : people) 
-	{
-		if (person->personName == "validation") 
+	if (trainAgain)
+		for (Person* person : people) 
 		{
-			validationIndex = i;
-			continue;
-		} 
-		i++;
-		person->trainGrayNN(6);
-		//person->trainDepthNN(6);
+			if (person->personName == "validation") 
+			{
+				validationIndex = i;
+				continue;
+			} 
+			i++;
+			person->trainGrayNN(6);
+			//person->trainDepthNN(6);
+		}
+	else
+	{
+		for (Person* person : people)
+		{
+			person->loadGrayNN();
+			person->loadSVM();
+
+		}
 	}
 
 	int depthIndex = 0;
 	//Depth on hold
-		
+	int z = 0;
 	for (Mat validation: people[validationIndex] -> grayFaces) 
 	{
 		//Rect roi(20, 20, 60, 60);
@@ -241,9 +346,13 @@ MSN::MSN() {
 		//validation = validation(roi);
 		//dvalidation = dvalidation(roi);
 		Mat dvalidation;
-		imshow("validation", validation);
+
 		identificate(validation);
+		cout << people[z]->personName << endl;
+		imshow("validation", validation);
 		waitKey(0);
+
+		z++;
 	}
 	cout << "para";
 

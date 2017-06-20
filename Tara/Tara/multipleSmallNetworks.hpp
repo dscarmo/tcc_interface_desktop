@@ -20,12 +20,11 @@
 
 class Person {
 private:
-	//enum grayOrDepth { gray, depth};
 	std::string gray_xml_path;
 	std::string svm_xml_path;
 	cv::Ptr<cv::ml::ANN_MLP> graynn;
 	cv::Ptr<cv::ml::SVM> svm;
-	void fillVector(const char* path);
+	void fillVector(string path);
 	
 	//Test, will be in msn
 	LocalBinaryPattern test_lbp;
@@ -39,8 +38,10 @@ public:
 	std::vector<cv::Mat> negativos;
 
 	//constructor
-	Person(int id, std::string name, const char* grayPath, const char* depthPath);
+	Person(int id, std::string name, string grayPath);
 	
+	void displayPerson(int waittime);
+
 	//Train graynn on grayfaces
 	int trainGrayNN(int neuronios);
 
@@ -58,6 +59,10 @@ public:
 class MSN {
 	//Dataset class (person) vector
 private:
+
+	bool trainAgain = true;
+	bool debugshow = false;
+
 	std::vector<Person *> people;
 public:
 	//identificate (run all Persons predicts (parallel) sync and return better result
