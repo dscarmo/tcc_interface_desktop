@@ -38,7 +38,13 @@ int main() {
 		return 0;
 	}
 	else if (choice == 0) {
-		syncCapture();
+		if (syncCapture() != 0)
+		{
+			cout << "Capture returned non-zero code" << endl;
+			system("PAUSE");
+			return 1;
+		}
+			
 
 		return 0;
 		

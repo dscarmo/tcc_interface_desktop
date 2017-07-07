@@ -117,13 +117,13 @@ double Person::predict(Mat input) {
 	graynn->predict(feature, output);
 	svm->predict(feature, soutput);
 	
-	points2d = (double)PESO*output.at<float>(0, 0);
-	pointss = (double)PESOSVM*output.at<float>(0, 0);
+	points2d = (double)PESO*output.at<float>(0, 0)/3.4 + 0.5; // -1.7 to 1.7 needs normalize
+	pointss = (double)PESOSVM*output.at<float>(0, 0)/2 + 0.5; //-1 to 1
 	cout << "MLP de " + personName + ": " + to_string(points2d/PESO) << "SVM: " << to_string(pointss) << endl;
 	
 	
 
-	return points2d + pointss;
+	return (points2d + pointss) / 0.02;
 }
 
 //Fills with pre process
@@ -377,8 +377,9 @@ string MSN::identificate(cv::Mat input) {
 	}
 
 	int count = 0;
+	cout << "Degrees of similarity: " << endl;
 	for (auto r : results) {
-		cout << r.first << r.second << endl << endl;
+		cout << r.first << " %" << "Person: " << r.second << endl << endl;
 		if (++count == results.size()) 
 		{
 			result = r.second;
