@@ -110,20 +110,29 @@ double Person::predict(Mat input) {
 	input_lbp.row(0).copyTo(feature.row(0));
 	double points2d, pointss;
 	points2d = 0;
-	int PESO = 1;
-	int PESOSVM = 1;
+	double PESO = 0.9;
+	double PESOSVM = 0.1;
 
 	//Gray
 	graynn->predict(feature, output);
 	svm->predict(feature, soutput);
 	
-	points2d = (double)PESO*output.at<float>(0, 0)/3.4 + 0.5; // -1.7 to 1.7 needs normalize
-	pointss = (double)PESOSVM*output.at<float>(0, 0)/2 + 0.5; //-1 to 1
+	// Parameters
+	//cout << "c: " << svm->getC() << " Epsilon: " << svm->getP() << " Kernel: " << svm->getKernelType() << " Type " << svm->getType();
+	
+
+
+	points2d = (double)output.at<float>(0, 0)/3.4 + 0.5; // -1.7 to 1.7 needs normalize to 0  - 1
+	pointss = (double)soutput.at<int>(0, 0); //numero doido
+	cout << "Número doido: " << pointss << endl;
+	pointss > 0 ? pointss = 1 : pointss = 0; //says if svms agrees or not
 	cout << "MLP de " + personName + ": " + to_string(points2d/PESO) << "SVM: " << to_string(pointss) << endl;
 	
 	
-
-	return (points2d + pointss) / 0.02;
+	//SVM adds 25% 
+	return (PESO*points2d + PESOSVM*pointss)/0.01;
+	//return (points2d) / 0.01;
+	//return (pointss)/0.01;
 }
 
 //Fills with pre process
@@ -207,7 +216,7 @@ MSN::MSN() {
 	//Yale full
 	for (int i = 1; i < 40; i++) 
 	{
-		//Excluded faces, too similar
+		/*//Excluded faces, too similar
 		if (i != 2 &&
 			i != 4 &&
 			i != 5 &&
@@ -223,7 +232,8 @@ MSN::MSN() {
 			i != 31 &&
 			i != 32 &&
 			i != 33 &&
-			i != 36  ) continue;//doesnt exist, dont know why
+			i != 36  ) continue;*///doesnt exist, dont know why
+		if (i == 14) continue;
 		string index = "";
 		string path;
 		ostringstream ossindex, osspath;
