@@ -142,16 +142,11 @@ int FaceIdentification::CameraStreaming()
 				destroyAllWindows();
 				break;
 			}
-
-			//Get disparity
-			//_Disparity.GetDisparity(LeftImage, RightImage, &gDisparityMap, &gDisparityMap_viz);
 		}
 		
 		try
 		{
 			DisplayImage = LeftImage.clone();
-			//cvtColor(gDisparityMap_viz, DepthDisplayImage, CV_BGR2GRAY);
-			//DepthDisplayImage = gDisparityMap.clone();
 			LFaces = faceDetect(DisplayImage);
 		
 			//Normalizer roi

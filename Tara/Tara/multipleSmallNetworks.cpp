@@ -46,7 +46,7 @@ void Person::displayPerson(int waittime) {
 
 int Person::trainGrayNN(int neuronios) {
 	Mat layers = Mat(3, 1, CV_32S);
-	layers.row(0) = Scalar(256);
+	layers.row(0) = Scalar(FEATURE_SIZE);
 	layers.row(1) = Scalar(neuronios);
 	layers.row(2) = Scalar(1);
 	
@@ -60,14 +60,15 @@ int Person::trainGrayNN(int neuronios) {
 	graynn -> setTermCriteria(TermCriteria(TermCriteria::MAX_ITER + TermCriteria::EPS, 300, 0.0001));
 	graynn -> setTrainMethod(ml::ANN_MLP::BACKPROP, 0.0001);
 
-	Mat samples(Size(256, grayFaces.size() + negativos.size()), CV_32F); //Positivos mais negativos
+	Mat samples(Size(FEATURE_SIZE, grayFaces.size() + negativos.size()), CV_32F); //Positivos mais negativos
 	Mat responsesvm(Size(1, grayFaces.size() + negativos.size()), CV_32S);
 	Mat responses(Size(1, grayFaces.size() + negativos.size()), CV_32F);
 	int contador = 0;
 
 	//Positivos
 	for (Mat positivo : grayFaces) {
-		Mat trainingHist = test_lbp.grayLBPpipeline(positivo);
+		//Mat trainingHist = test_lbp.grayLBPpipeline(positivo);
+		Mat trainingHist = test_lbp.betterLBPpipeline(positivo);
 		trainingHist.row(0).copyTo(samples.row(contador));
 		responses.at<float>(Point(0, contador)) = 1;
 		responsesvm.at<float>(Point(0, contador)) = 1;
@@ -77,7 +78,8 @@ int Person::trainGrayNN(int neuronios) {
 	//Negativos
 	//take one face from each other
 	for (Mat negativo : negativos) { //Must get a negative dataset for faces
-		Mat trainingHist = test_lbp.grayLBPpipeline(negativo);
+		//Mat trainingHist = test_lbp.grayLBPpipeline(negativo);
+		Mat trainingHist = test_lbp.betterLBPpipeline(negativo);
 		trainingHist.row(0).copyTo(samples.row(contador));
 		responses.at<float>(Point(0, contador)) = -1;
 		responsesvm.at<float>(Point(0, contador)) = -1;
@@ -90,32 +92,37 @@ int Person::trainGrayNN(int neuronios) {
 	svm->setKernel(ml::SVM::LINEAR);
 	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 100, 1e-6));
 	svm->train(t);*/
-	svm-> trainAuto(t);
+	destroyAllWindows();
+	//cout << "Training SVM..." << endl;
+	//svm-> trainAuto(t);
 
 	//Train mlp
+	cout << "Training MLP..." << endl;
 	if (!graynn->train(samples, ml::ROW_SAMPLE, responses))
 		return CREATION_ERROR;
 
 	trained = true;
 	//cout << "Treino concluído" << endl;
-	svm -> save(svm_xml_path);
-	graynn -> save(gray_xml_path);
+	//	svm -> save(svm_xml_path);
+	//graynn -> save(gray_xml_path);
 	cout << "rede neural de " + personName + " treinada..." << endl;
 	return TREINO_COMPLETO;
 }
 
 double Person::predict(Mat input) {
-	Mat feature(Size(256, 1), CV_32F), output, soutput;
-	Mat input_lbp = test_lbp.grayLBPpipeline(input);
+	Mat feature(Size(FEATURE_SIZE, 1), CV_32F), output, soutput;
+	//Mat input_lbp = test_lbp.grayLBPpipeline(input);
+	Mat input_lbp = test_lbp.betterLBPpipeline(input);
 	input_lbp.row(0).copyTo(feature.row(0));
 	double points2d, pointss;
 	points2d = 0;
+	pointss = 0;
 	double PESO = 0.9;
 	double PESOSVM = 0.1;
 
 	//Gray
 	graynn->predict(feature, output);
-	svm->predict(feature, soutput);
+	//svm->predict(feature, soutput);
 	
 	// Parameters
 	//cout << "c: " << svm->getC() << " Epsilon: " << svm->getP() << " Kernel: " << svm->getKernelType() << " Type " << svm->getType();
@@ -123,7 +130,7 @@ double Person::predict(Mat input) {
 
 
 	points2d = (double)output.at<float>(0, 0)/3.4 + 0.5; // -1.7 to 1.7 needs normalize to 0  - 1
-	pointss = (double)soutput.at<int>(0, 0); //numero doido
+	//pointss = (double)soutput.at<int>(0, 0); //numero doido
 	cout << "Número doido: " << pointss << endl;
 	pointss > 0 ? pointss = 1 : pointss = 0; //says if svms agrees or not
 	cout << "MLP de " + personName + ": " + to_string(points2d/PESO) << "SVM: " << to_string(pointss) << endl;
@@ -243,7 +250,7 @@ MSN::MSN() {
 			ossindex << "0" << i;
 		}
 		else
-		{
+		{	
 			ossindex << i;
 		}
 		index = ossindex.str();
@@ -312,6 +319,10 @@ MSN::MSN() {
 			}
 			getTwo = 0;
 		}
+		cout << "Number of Positives: " << person->grayFaces.size() << endl;
+		cout << "Number of Negatives: " << person->negativos.size() << endl;
+		Sleep(1000);
+
 	}
 
 	//Debug display filled images

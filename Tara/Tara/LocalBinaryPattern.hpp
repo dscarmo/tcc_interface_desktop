@@ -4,31 +4,34 @@
 #include "opencv2/videoio/videoio.hpp"
 #include "opencv2/objdetect/objdetect.hpp"
 #include "TDLBP.h"
+#include "Utils.hpp"
 //#include <windef.h>
+
+#define FEATURE_SIZE 256 * 16 * 16
 
 class LocalBinaryPattern {
 private:
-	//DEPRECATED Returns LBP binary word (eg. 00101101) for each 8 neighbourhood
-	uchar roiLBP(cv::Mat input);
-	
+	//LBP perfomance timer
+	Timer timer;
+
 	//Calcula LBP clássico
 	cv::Mat LocalBinaryPattern::grayImageLBP(cv::Mat grayImage);
-	
-	// DEPRECATED Tenta implementar diferença no LBP (fail)
-	cv::Mat LocalBinaryPattern::differenceLBP(cv::Mat depthImage);
-	
-	//Implementa 3DLBP do paper
-	cv::Mat LocalBinaryPattern::TDLBP(cv::Mat depthImage);
 
-	//Testa com imagem da webcam
-	void LocalBinaryPattern::webCamTest();
+	//LBP from net
+	cv::Mat LocalBinaryPattern::LBP(cv::Mat img);
 
 	//Recebe imagem do LBP clássico pra gerar um histograma
 	double** LocalBinaryPattern::getHistogram(cv::Mat lbpImage);
-public: 
-	int LocalBinaryPattern::test();
-	cv::Mat LocalBinaryPattern::grayLBPpipeline(cv::Mat frame);
-	void LocalBinaryPattern::depthPipeline(cv::Mat frame);
+public:
+	//Testa com imagem da webcam
+	void LocalBinaryPattern::webCamTest();
 
+	cv::Mat LocalBinaryPattern::LBPHistogram(cv::Mat lbp);
+	cv::Mat LocalBinaryPattern::grayLBPpipeline(cv::Mat frame);
+
+	cv::Mat LocalBinaryPattern::betterLBPpipeline(cv::Mat frame);
+	LocalBinaryPattern() {
+		timer = Timer();
+	}
 
 };

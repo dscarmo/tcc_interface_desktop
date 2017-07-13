@@ -51,7 +51,7 @@ int main() {
 	}
 	else if (choice == 2){
 		LocalBinaryPattern lbp;
-		lbp.test();
+		lbp.webCamTest();
 
 
 	}
