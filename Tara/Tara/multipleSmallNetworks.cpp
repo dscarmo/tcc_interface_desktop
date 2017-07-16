@@ -1,5 +1,7 @@
 #include "stdafx.h"
 #include <dirent.h>
+#include <thread>
+#include <vector>
 #include "multipleSmallNetworks.hpp"
 #include "Utils.hpp"
 #include "TDLBP.h"
@@ -24,11 +26,13 @@ Person::Person(int id, string name, string grayPath){
 }
 
 void Person::loadGrayNN() {
-	graynn->load<ml::ANN_MLP>(gray_xml_path);
+	graynn = Algorithm::load<ml::ANN_MLP>(gray_xml_path);
+	trained = true;
 }
 
 void Person::loadSVM() {
-	svm->load<ml::SVM>(svm_xml_path);
+	svm = Algorithm::load<ml::SVM>(svm_xml_path);
+	trained = true;
 }
 
 void Person::displayPerson(int waittime) {
@@ -44,7 +48,7 @@ void Person::displayPerson(int waittime) {
 	}
 }
 
-int Person::trainGrayNN(int neuronios) {
+int Person::trainGrayNN() {
 	Mat layers = Mat(3, 1, CV_32S);
 	layers.row(0) = Scalar(FEATURE_SIZE);
 	layers.row(1) = Scalar(neuronios);
@@ -91,21 +95,33 @@ int Person::trainGrayNN(int neuronios) {
 	/*svm->setType(ml::SVM::C_SVC);
 	svm->setKernel(ml::SVM::LINEAR);
 	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 100, 1e-6));
-	svm->train(t);*/
-	destroyAllWindows();
-	//cout << "Training SVM..." << endl;
-	//svm-> trainAuto(t);
+	svm->train(t);
+	destroyAllWindows();*/
+	cout << personName <<" - Training SVM..." << endl;
+	svm-> trainAuto(t);
 
 	//Train mlp
-	cout << "Training MLP..." << endl;
+	cout << personName << " - Training MLP..." << endl;
 	if (!graynn->train(samples, ml::ROW_SAMPLE, responses))
 		return CREATION_ERROR;
 
 	trained = true;
 	//cout << "Treino concluído" << endl;
 	//	svm -> save(svm_xml_path);
-	//graynn -> save(gray_xml_path);
-	cout << "rede neural de " + personName + " treinada..." << endl;
+	try
+	{
+		cout << "Saving NN train...";
+		graynn->save(gray_xml_path);
+		cout << "Saving SVM train...";
+		svm->save(svm_xml_path);
+	}
+	catch (const std::exception err)
+	{
+		cout << err.what() << endl;
+	}
+	//
+	
+	cout << personName + " treinada." << endl;
 	return TREINO_COMPLETO;
 }
 
@@ -122,7 +138,7 @@ double Person::predict(Mat input) {
 
 	//Gray
 	graynn->predict(feature, output);
-	//svm->predict(feature, soutput);
+	svm->predict(feature, soutput);
 	
 	// Parameters
 	//cout << "c: " << svm->getC() << " Epsilon: " << svm->getP() << " Kernel: " << svm->getKernelType() << " Type " << svm->getType();
@@ -130,7 +146,7 @@ double Person::predict(Mat input) {
 
 
 	points2d = (double)output.at<float>(0, 0)/3.4 + 0.5; // -1.7 to 1.7 needs normalize to 0  - 1
-	//pointss = (double)soutput.at<int>(0, 0); //numero doido
+	pointss = (double)soutput.at<int>(0, 0); //numero doido
 	cout << "Número doido: " << pointss << endl;
 	pointss > 0 ? pointss = 1 : pointss = 0; //says if svms agrees or not
 	cout << "MLP de " + personName + ": " + to_string(points2d/PESO) << "SVM: " << to_string(pointss) << endl;
@@ -223,23 +239,7 @@ MSN::MSN() {
 	//Yale full
 	for (int i = 1; i < 40; i++) 
 	{
-		/*//Excluded faces, too similar
-		if (i != 2 &&
-			i != 4 &&
-			i != 5 &&
-			i != 6 &&
-			i != 7 &&
-			i != 8 &&
-			i != 13 &&
-			i != 16 &&
-			i != 17 &&
-			i != 23 &&
-			i != 26 &&
-			i != 27 &&
-			i != 31 &&
-			i != 32 &&
-			i != 33 &&
-			i != 36  ) continue;*///doesnt exist, dont know why
+		
 		if (i == 14) continue;
 		string index = "";
 		string path;
@@ -278,15 +278,7 @@ MSN::MSN() {
 		}
 	}
 
-	//Yale Small
-	/*people.push_back(new Person(1, "asian_woman", "Faces\\asian_woman\\gray"));
-	people.push_back(new Person(2, "big_eye", "Faces\\big_eye\\gray"));
-	people.push_back(new Person(3, "europeu", "Faces\\bigode_limpo\\gray"));
-	people.push_back(new Person(5, "sobrancelha_asia", "Faces\\sobrancelha_asia\\gray"));
-	people.push_back(new Person(999, "validation", "Faces\\validation\\gray"));
-
-	people.push_back(new Person(6, "diedre", "Faces\\diedre\\gray"));
-
+	
 	//My dataset
 	/*
 	people.push_back(new Person(1, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth"));
@@ -319,53 +311,55 @@ MSN::MSN() {
 			}
 			getTwo = 0;
 		}
+		cout << "Person name: " << person->personName << endl;
 		cout << "Number of Positives: " << person->grayFaces.size() << endl;
 		cout << "Number of Negatives: " << person->negativos.size() << endl;
-		Sleep(1000);
 
 	}
-
+	Sleep(1000);
 	//Debug display filled images
 	if (debugshow)
 	for (Person* person : people) {
 		person->displayPerson(100);
 	}
 
-	//Test
-	//for (int neu = 2; neu < 10; neu++) {
 	int validationIndex = 0;
 	int i = 0;
-	if (trainAgain)
-		for (Person* person : people) 
+	vector<thread *> threads;
+	if (trainAgain) {
+		for (Person* person : people)
 		{
-			if (person->personName == "validation") 
+			if (person->personName == "validation")
 			{
 				validationIndex = i;
 				continue;
-			} 
+			}
 			i++;
-			person->trainGrayNN(6);
-			//person->trainDepthNN(6);
+			threads.push_back(new thread(&Person::trainGrayNN, person));
 		}
+		for (auto t : threads) t -> join();
+	}
 	else
 	{
+		cout << "Loading Classifiers..." << endl;
 		for (Person* person : people)
 		{
+			if (person->personName == "validation") 
+			{ 
+				validationIndex = i;
+				continue; 
+			}
+			cout <<  i*100/people.size() << "%" << endl;
 			person->loadGrayNN();
 			person->loadSVM();
-
+			i++;
+			
 		}
 	}
 
-	int depthIndex = 0;
-	//Depth on hold
 	int z = 0;
 	for (Mat validation: people[validationIndex] -> grayFaces) 
 	{
-		//Rect roi(20, 20, 60, 60);
-		//Mat dvalidation = people[7] -> depthFaces[depthIndex++];
-		//validation = validation(roi);
-		//dvalidation = dvalidation(roi);
 		Mat dvalidation;
 
 		identificate(validation);

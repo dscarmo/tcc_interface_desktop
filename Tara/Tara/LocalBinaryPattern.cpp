@@ -218,7 +218,7 @@ Mat LocalBinaryPattern::betterLBPpipeline(Mat frame) {
 
 
 	lbp = LBP(frame);
-	imshow("whole frame lbp", lbp);
+//	imshow("whole frame lbp", lbp);
 	
 	int N = 16;
 	int index = 0;
@@ -246,8 +246,8 @@ Mat LocalBinaryPattern::betterLBPpipeline(Mat frame) {
 		hist.push_back(frequency*100);
 	}
 	drawHist(hist, draw);
-	imshow("histograma lbp", draw);
-	waitKey(1);
+//	imshow("histograma lbp", draw);
+	//waitKey(1);
 	//cout << "Debug histogram display time: " << timer.elapsed() << endl;
 	return feature;
 }

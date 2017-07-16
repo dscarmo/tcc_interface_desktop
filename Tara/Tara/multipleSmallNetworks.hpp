@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <iostream>
+#include <thread>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/ml/ml.hpp"
@@ -20,13 +21,13 @@
 
 class Person {
 private:
+	int neuronios = 6;
 	std::string gray_xml_path;
 	std::string svm_xml_path;
 	cv::Ptr<cv::ml::ANN_MLP> graynn;
 	cv::Ptr<cv::ml::SVM> svm;
 	void fillVector(string path);
 	
-	//Test, will be in msn
 	LocalBinaryPattern test_lbp;
 
 public:
@@ -43,7 +44,7 @@ public:
 	void displayPerson(int waittime);
 
 	//Train graynn on grayfaces
-	int trainGrayNN(int neuronios);
+	int trainGrayNN();
 
 	//Loads gray XML
 	void loadGrayNN();
@@ -59,11 +60,11 @@ public:
 class MSN {
 	//Dataset class (person) vector
 private:
-
-	bool trainAgain = true;
+	bool trainAgain = false;
 	bool debugshow = false;
 
 	std::vector<Person *> people;
+	std::vector<std::thread> trainThreads;
 public:
 	//identificate (run all Persons predicts (parallel) sync and return better result
 	//returns person name string
