@@ -2,6 +2,7 @@
 #include <string>
 #include <iostream>
 #include <thread>
+#include <mutex>
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/ml/ml.hpp"
@@ -12,6 +13,12 @@
 
 #define DEFAULT_DATASET_WIDTH 168
 #define DEFAULT_DATA_HEIGHT 192
+
+enum {
+	TRAINED,
+	WROTE
+};
+
 //personID
 //personName
 //gray faces
@@ -31,12 +38,31 @@ private:
 	LocalBinaryPattern test_lbp;
 
 public:
+	void saveFeatures();
 
 	int personID;
+	bool wrote;
 	bool trained;
 	std::string personName;
 	std::vector<cv::Mat> grayFaces;
 	std::vector<cv::Mat> negativos;
+	std::mutex status_change;
+
+	void setStatus(int e){
+		status_change.lock();
+		if (e == TRAINED)trained = true;
+		else if (e == WROTE)wrote = true;
+		status_change.unlock();
+	}
+
+	bool getStatus(int e) {
+		bool result = false;
+		status_change.lock();
+		if (e == TRAINED) trained ? result = true : result = false;
+		else if (e == WROTE) wrote ? result = true : result = false;
+		status_change.unlock();
+		return result;
+	}
 
 	//constructor
 	Person(int id, std::string name, string grayPath);
@@ -60,8 +86,14 @@ public:
 class MSN {
 	//Dataset class (person) vector
 private:
-	bool trainAgain = false;
+	bool trainAgain = true;
 	bool debugshow = false;
+
+	int completed = 0;
+
+	void loadingBar(string msg, float percent) {
+		cout << msg << ": " << percent << "%" << endl;
+	}
 
 	std::vector<Person *> people;
 	std::vector<std::thread> trainThreads;

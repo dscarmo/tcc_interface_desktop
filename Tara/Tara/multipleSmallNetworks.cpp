@@ -2,6 +2,7 @@
 #include <dirent.h>
 #include <thread>
 #include <vector>
+#include <fstream>
 #include "multipleSmallNetworks.hpp"
 #include "Utils.hpp"
 #include "TDLBP.h"
@@ -11,6 +12,7 @@ using namespace cv;
 
 Person::Person(int id, string name, string grayPath){
 	//Put arguments and pushback faces
+	wrote = false;
 	trained = false;
 	personID = id;
 	personName = name;
@@ -27,12 +29,11 @@ Person::Person(int id, string name, string grayPath){
 
 void Person::loadGrayNN() {
 	graynn = Algorithm::load<ml::ANN_MLP>(gray_xml_path);
-	trained = true;
 }
 
 void Person::loadSVM() {
 	svm = Algorithm::load<ml::SVM>(svm_xml_path);
-	trained = true;
+	setStatus(TRAINED);
 }
 
 void Person::displayPerson(int waittime) {
@@ -46,6 +47,37 @@ void Person::displayPerson(int waittime) {
 		imshow("negativos", face);
 		waitKey(waittime);
 	}
+}
+
+//Saving to file for asian
+void Person::saveFeatures() {
+	ofstream file;
+
+	file.open("text\\p" + personName + ".txt");
+	for (auto positivo : grayFaces) {
+		Mat feature = test_lbp.betterLBPpipeline(positivo);
+		for (int i = 0; i < feature.rows; i++) {
+			for (int j = 0; j < feature.cols; j++) {
+				file << feature.at<float>(i, j) << " ";
+			}
+		}
+		file << endl;
+	}
+	file.close();
+
+	file.open("text\\n" + personName + ".txt");
+	for (auto positivo : grayFaces) {
+		Mat feature = test_lbp.betterLBPpipeline(positivo);
+		for (int i = 0; i < feature.rows; i++) {
+			for (int j = 0; j < feature.cols; j++) {
+				file << feature.at<float>(i, j) << " ";
+			}
+		}
+		file << endl;
+	}
+
+	file.close();
+	setStatus(WROTE);
 }
 
 int Person::trainGrayNN() {
@@ -97,31 +129,32 @@ int Person::trainGrayNN() {
 	svm->setTermCriteria(TermCriteria(TermCriteria::MAX_ITER, 100, 1e-6));
 	svm->train(t);
 	destroyAllWindows();*/
-	cout << personName <<" - Training SVM..." << endl;
+	//cout << personName <<" - Training SVM..." << endl;
+	svm->setKernel(ml::SVM::LINEAR);
 	svm-> trainAuto(t);
 
 	//Train mlp
-	cout << personName << " - Training MLP..." << endl;
+	//cout << personName << " - Training MLP..." << endl;
 	if (!graynn->train(samples, ml::ROW_SAMPLE, responses))
 		return CREATION_ERROR;
 
-	trained = true;
+	setStatus(TRAINED);
 	//cout << "Treino concluído" << endl;
 	//	svm -> save(svm_xml_path);
 	try
 	{
-		cout << "Saving NN train...";
+		//cout << "Saving NN train...";
 		graynn->save(gray_xml_path);
-		cout << "Saving SVM train...";
+		//cout << "Saving SVM train...";
 		svm->save(svm_xml_path);
 	}
 	catch (const std::exception err)
 	{
-		cout << err.what() << endl;
+		cout << "Saving error: " << err.what() << endl;
 	}
 	//
 	
-	cout << personName + " treinada." << endl;
+	//cout << personName + " treinada." << endl;
 	return TREINO_COMPLETO;
 }
 
@@ -235,9 +268,8 @@ void Person::fillVector(string input_dir) {
 }
 
 MSN::MSN() {
-
 	//Yale full
-	for (int i = 1; i < 40; i++) 
+	for (int i = 1; i < 5; i++) 
 	{
 		
 		if (i == 14) continue;
@@ -262,7 +294,7 @@ MSN::MSN() {
 
 	people.push_back(new Person(999, "validation", "Faces\\validation"));
 	
-	//Fill validation
+	//Put some faces on the validation (they are removed from positives for real)
 	for (Person* validation : people)
 	{
 		if (validation->personID == 999) 
@@ -273,24 +305,12 @@ MSN::MSN() {
 				{
 					validation->grayFaces.push_back(person->grayFaces.back());
 					person->grayFaces.pop_back();
+					validation->grayFaces.push_back(person->grayFaces.back());
+					person->grayFaces.pop_back();
 				}
 			}
 		}
 	}
-
-	
-	//My dataset
-	/*
-	people.push_back(new Person(1, "diedre", "Faces\\diedre\\gray", "Faces\\diedre\\depth"));
-	people.push_back(new Person(2, "gin", "Faces\\gin\\gray", "Faces\\gin\\depth"));
-	people.push_back(new Person(3, "raul", "Faces\\raul\\gray", "Faces\\raul\\depth"));
-	people.push_back(new Person(4, "nicole", "Faces\\nicole\\gray", "Faces\\nicole\\depth"));
-	people.push_back(new Person(5, "pompilio", "Faces\\pompilio\\gray", "Faces\\pompilio\\depth"));
-	people.push_back(new Person(6, "rodolfo", "Faces\\rodolfo\\gray", "Faces\\rodolfo\\depth"));
-	people.push_back(new Person(7, "darline", "Faces\\darline\\gray", "Faces\\darline\\depth"));
-	people.push_back(new Person(999, "validation", "Faces\\validation\\gray", "Faces\\validation\\depth"));
-	*/
-	//Each person fills its image vectors with grays and depths and negatives and eventually validation
 
 	//Cross positive training
 	for (Person* person : people) 
@@ -317,16 +337,43 @@ MSN::MSN() {
 
 	}
 	Sleep(1000);
+	
+	//Fill text files features
+	cout << "Writing features to files with parallel pool of threads... This will take a while..." << endl;
+	vector<thread *> writers;
+	completed = 0;
+	for (auto person : people) {
+		if (person->personName == "validation") continue;
+		completed = 0;
+		for (auto person : people) if (person->getStatus(WROTE)) completed++;
+		loadingBar("Starting write for..." + person->personName, (completed * 100) / people.size());
+		writers.push_back(new thread(&Person::saveFeatures, person));
+		
+	}
+	while (completed < people.size() - 1) {
+		completed = 0;
+		for (auto person : people) if (person->getStatus(WROTE)) completed++;
+		loadingBar("Writing... ", (completed * 100) / people.size());
+		Sleep(1000);
+	}
+	for (auto w : writers) {
+		w->join();
+		
+	}
+
 	//Debug display filled images
 	if (debugshow)
 	for (Person* person : people) {
 		person->displayPerson(100);
 	}
 
+	//Threaded classifier generation
 	int validationIndex = 0;
 	int i = 0;
 	vector<thread *> threads;
 	if (trainAgain) {
+		cout << "Training classifiers with parallel pool of threads... This will take a while." << endl;
+		completed = 0;
 		for (Person* person : people)
 		{
 			if (person->personName == "validation")
@@ -335,13 +382,24 @@ MSN::MSN() {
 				continue;
 			}
 			i++;
+			completed = 0;
+			for (auto person : people) if (person->getStatus(TRAINED)) completed++;
+			loadingBar("Starting training for..." + person->personName, (completed * 100) / people.size());
 			threads.push_back(new thread(&Person::trainGrayNN, person));
 		}
-		for (auto t : threads) t -> join();
+		while (completed < people.size() - 1) {
+			completed = 0;
+			for (auto person : people) if (person->getStatus(TRAINED)) completed++;
+			loadingBar("Training... ", (completed * 100) / people.size());
+			Sleep(2000);
+		}
+		for (auto t : threads) {
+			t->join();
+		}
 	}
 	else
 	{
-		cout << "Loading Classifiers..." << endl;
+		cout << "Loading Classifiers with parallel pool of threads..." << endl;
 		for (Person* person : people)
 		{
 			if (person->personName == "validation") 
@@ -349,27 +407,44 @@ MSN::MSN() {
 				validationIndex = i;
 				continue; 
 			}
-			cout <<  i*100/people.size() << "%" << endl;
-			person->loadGrayNN();
-			person->loadSVM();
+			completed = 0;
+			for (auto person : people) if (person->getStatus(TRAINED)) completed++;
+			loadingBar("Starting loading for..." + person->personName, (completed * 100) / people.size());
+			threads.push_back(new thread(&Person::loadGrayNN, person));
+			threads.push_back(new thread(&Person::loadSVM, person));
 			i++;
 			
 		}
+		completed = 0;
+		while (completed < people.size() - 1) {
+			completed = 0;
+			for (auto person : people) if (person->getStatus(TRAINED)) completed++;
+			loadingBar("Loading... ", (completed * 100) / people.size());
+			Sleep(100);
+		}
+		for (auto t : threads) { 
+			t->join();
+		}
 	}
 
+	//Validation test
 	int z = 0;
+	int x = 0;
 	for (Mat validation: people[validationIndex] -> grayFaces) 
 	{
 		Mat dvalidation;
 
 		identificate(validation);
-		cout << people[z]->personName << endl;
+		cout << people[x]->personName << endl;
 		imshow("validation", validation);
 		waitKey(0);
 
 		z++;
+		if (z % 2 == 0) x++;
 	}
-	cout << "para";
+
+	destroyAllWindows();
+	Sleep(1000);
 
 
 }
