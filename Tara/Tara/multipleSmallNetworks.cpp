@@ -51,32 +51,39 @@ void Person::displayPerson(int waittime) {
 
 //Saving to file for asian
 void Person::saveFeatures() {
+	//if (personName != "yaleB05") {
+		setStatus(WROTE); 
+		return; 
+	//}
 	ofstream file;
+	ofstream response;
 
-	file.open("text\\p" + personName + ".txt");
+	response.open("text\\responses.txt");
+	int p = 0;
 	for (auto positivo : grayFaces) {
+		file.open("text\\pp\\p" + personName + "-" + to_string(p++) + ".txt");
 		Mat feature = test_lbp.betterLBPpipeline(positivo);
 		for (int i = 0; i < feature.rows; i++) {
 			for (int j = 0; j < feature.cols; j++) {
-				file << feature.at<float>(i, j) << " ";
+				file << feature.at<float>(i, j) << endl;
 			}
 		}
-		file << endl;
+		file.close();
+		response << '100' << endl;
 	}
-	file.close();
-
-	file.open("text\\n" + personName + ".txt");
-	for (auto positivo : grayFaces) {
-		Mat feature = test_lbp.betterLBPpipeline(positivo);
+	int n = 0;
+	for (auto negative : negativos) {
+		file.open("text\\n\\n" + personName + "-" + to_string(n++) + ".txt");
+		Mat feature = test_lbp.betterLBPpipeline(negative);
 		for (int i = 0; i < feature.rows; i++) {
 			for (int j = 0; j < feature.cols; j++) {
-				file << feature.at<float>(i, j) << " ";
+				file << feature.at<float>(i, j) << endl;
 			}
 		}
-		file << endl;
+		file.close();
+		response << '3' << endl;
 	}
-
-	file.close();
+	response.close();
 	setStatus(WROTE);
 }
 
@@ -269,7 +276,7 @@ void Person::fillVector(string input_dir) {
 
 MSN::MSN() {
 	//Yale full
-	for (int i = 1; i < 5; i++) 
+	for (int i = 1; i < 40; i++) 
 	{
 		
 		if (i == 14) continue;

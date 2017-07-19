@@ -7,7 +7,7 @@
 #include "Utils.hpp"
 //#include <windef.h>
 
-#define FEATURE_SIZE 256 * 16 * 16
+#define FEATURE_SIZE 256 * 56
 
 class LocalBinaryPattern {
 private:

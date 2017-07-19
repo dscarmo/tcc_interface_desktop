@@ -86,7 +86,7 @@ public:
 class MSN {
 	//Dataset class (person) vector
 private:
-	bool trainAgain = true;
+	bool trainAgain = false;
 	bool debugshow = false;
 
 	int completed = 0;

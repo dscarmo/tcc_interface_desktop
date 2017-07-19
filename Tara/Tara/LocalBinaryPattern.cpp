@@ -218,10 +218,11 @@ Mat LocalBinaryPattern::betterLBPpipeline(Mat frame) {
 
 
 	lbp = LBP(frame);
-//	imshow("whole frame lbp", lbp);
+	//imshow("whole frame lbp", lbp);
 	
-	int N = 16;
+	int N = 24;
 	int index = 0;
+	int test = 0;
 	timer.reset();
 	for (int r = 0; r < frame.rows; r += N)
 		for (int c = 0; c < frame.cols; c += N)
@@ -234,8 +235,7 @@ Mat LocalBinaryPattern::betterLBPpipeline(Mat frame) {
 			}
 			index += 256;
 		}
-	//cout << "LBP Feature construction time: " << timer.elapsed() << endl;
-
+	
 	//Debug draw double vector
 	vector<double> hist; //container do vetor de debug
 	Mat3b draw; //container do draw
@@ -246,7 +246,7 @@ Mat LocalBinaryPattern::betterLBPpipeline(Mat frame) {
 		hist.push_back(frequency*100);
 	}
 	drawHist(hist, draw);
-//	imshow("histograma lbp", draw);
+	//imshow("histograma lbp", draw);
 	//waitKey(1);
 	//cout << "Debug histogram display time: " << timer.elapsed() << endl;
 	return feature;
